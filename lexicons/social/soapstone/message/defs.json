@@ -1,0 +1,31 @@
+{
+  "lexicon": 1,
+  "id": "social.soapstone.message.defs",
+  "defs": {
+    "messagePart": {
+      "type": "object",
+      "description": "A message part consisting of a base phrase and a fill phrase.",
+      "required": ["base", "fill"],
+      "properties": {
+        "base": {
+          "type": "union",
+          "description": "Base phrase",
+          "refs": ["social.soapstone.message.en.defs#basePhrase"]
+        },
+        "fill": {
+          "type": "union",
+          "description": "Fill phrase",
+          "refs": ["social.soapstone.message.en.defs#fillPhrase"]
+        }
+      }
+    },
+    "message": {
+      "type": "array",
+      "description": "A message consisting of a series of bases phrases paired with fill phrases.",
+      "items": {
+        "type": "ref",
+        "ref": "social.soapstone.message.defs#messagePart"
+      }
+    }
+  }
+}

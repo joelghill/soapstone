@@ -1,0 +1,43 @@
+{
+  "lexicon": 1,
+  "id": "social.soapstone.feed.getPosts",
+  "defs": {
+    "main": {
+      "type": "query",
+      "description": "Gets soapstone posts in a location",
+      "parameters": {
+        "type": "params",
+        "required": ["location"],
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "The requeter's current location as described by a geo URI, a scheme defined by the Internet Engineering Task Force's RFC 5870 (published 8 June 2010).",
+            "format": "uri"
+          },
+          "radius": {
+            "type": "integer",
+            "description": "The radius in meters around the location to search for posts",
+            "minimum": 1,
+            "maximum": 1000
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["posts"],
+          "properties": {
+            "posts": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "social.soapstone.feed.defs#postView"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

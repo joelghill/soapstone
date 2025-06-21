@@ -1,0 +1,20 @@
+{
+  "lexicon": 1,
+  "id": "social.soapstone.actor.defs",
+  "defs": {
+    "profileViewMinimal": {
+      "type": "object",
+      "required": ["did", "handle"],
+      "properties": {
+        "did": { "type": "string", "format": "did" },
+        "handle": { "type": "string", "format": "handle" },
+        "displayName": {
+          "type": "string",
+          "maxGraphemes": 64,
+          "maxLength": 640
+        },
+        "avatar": { "type": "string", "format": "uri" }
+      }
+    }
+  }
+}

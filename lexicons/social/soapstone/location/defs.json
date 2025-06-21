@@ -1,0 +1,18 @@
+{
+  "lexicon": 1,
+  "id": "social.soapstone.location.defs",
+  "defs": {
+    "location": {
+      "type": "object",
+      "description": "A location in a 3D reference system.",
+      "required": ["uri"],
+      "properties": {
+        "uri": {
+          "type": "string",
+          "format": "uri",
+          "description": "A geo URI using a scheme defined by the Internet Engineering Task Force's RFC 5870 (published 8 June 2010)."
+        }
+      }
+    }
+  }
+}

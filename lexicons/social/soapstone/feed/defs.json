@@ -1,0 +1,33 @@
+{
+  "lexicon": 1,
+  "id": "social.soapstone.feed.defs",
+  "defs": {
+    "postView": {
+      "type": "object",
+      "required": ["uri", "cid", "author", "record", "indexedAt"],
+      "properties": {
+        "uri": { "type": "string", "format": "at-uri" },
+        "cid": { "type": "string", "format": "cid" },
+        "author": {
+          "type": "ref",
+          "ref": "social.soapstone.actor.defs#profileViewMinimal"
+        },
+        "record": {
+          "type": "ref",
+          "ref": "social.soapstone.feed.post"
+        },
+        "positiveRatingsCount": { "type": "integer" },
+        "negativeRatingsCount": { "type": "integer" },
+        "indexedAt": { "type": "string", "format": "datetime" },
+        "viewer": { "type": "ref", "ref": "#viewerState" }
+      }
+    },
+    "viewerState": {
+      "type": "object",
+      "description": "Metadata about the requesting account's relationship with the subject content.",
+      "properties": {
+        "rating": { "type": "string", "format": "at-uri" }
+      }
+    }
+  }
+}

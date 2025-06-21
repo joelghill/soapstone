@@ -1,0 +1,21 @@
+{
+  "lexicon": 1,
+  "id": "social.soapstone.feed.rating",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "Record declaring a positive or negative rating of a piece of subject content.",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["message", "value", "createdAt", "via"],
+        "properties": {
+          "message": { "type": "ref", "ref": "com.atproto.repo.strongRef" },
+          "value": { "type": "boolean" },
+          "createdAt": { "type": "string", "format": "datetime" },
+          "via": { "type": "ref", "ref": "com.atproto.repo.strongRef" }
+        }
+      }
+    }
+  }
+}

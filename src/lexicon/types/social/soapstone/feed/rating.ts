@@ -9,18 +9,18 @@ import {
   is$typed as _is$typed,
   type OmitKey,
 } from '../../../../util'
-import type * as SocialFlatlanderSoapstoneMessageDefs from './message/defs.js'
-import type * as SocialFlatlanderSoapstoneLocationDefs from './location/defs.js'
+import type * as ComAtprotoRepoStrongRef from '../../../com/atproto/repo/strongRef.js'
 
 const is$typed = _is$typed,
   validate = _validate
-const id = 'social.flatlander.soapstone.message'
+const id = 'social.soapstone.feed.rating'
 
 export interface Record {
-  $type: 'social.flatlander.soapstone.message'
-  text: SocialFlatlanderSoapstoneMessageDefs.Message
-  location: SocialFlatlanderSoapstoneLocationDefs.Location
+  $type: 'social.soapstone.feed.rating'
+  message: ComAtprotoRepoStrongRef.Main
+  value: boolean
   createdAt: string
+  via: ComAtprotoRepoStrongRef.Main
   [k: string]: unknown
 }
 

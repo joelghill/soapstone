@@ -9,6 +9,7 @@ import {
   type StreamAuthVerifier,
 } from '@atproto/xrpc-server'
 import { schemas } from './lexicons.js'
+import * as SocialSoapstoneFeedGetPosts from './types/social/soapstone/feed/getPosts.js'
 
 export function createServer(options?: XrpcOptions): Server {
   return new Server(options)
@@ -17,34 +18,75 @@ export function createServer(options?: XrpcOptions): Server {
 export class Server {
   xrpc: XrpcServer
   social: SocialNS
+  com: ComNS
 
   constructor(options?: XrpcOptions) {
     this.xrpc = createXrpcServer(schemas, options)
     this.social = new SocialNS(this)
+    this.com = new ComNS(this)
   }
 }
 
 export class SocialNS {
   _server: Server
-  flatlander: SocialFlatlanderNS
+  soapstone: SocialSoapstoneNS
 
   constructor(server: Server) {
     this._server = server
-    this.flatlander = new SocialFlatlanderNS(server)
+    this.soapstone = new SocialSoapstoneNS(server)
   }
 }
 
-export class SocialFlatlanderNS {
+export class SocialSoapstoneNS {
   _server: Server
-  soapstone: SocialFlatlanderSoapstoneNS
+  feed: SocialSoapstoneFeedNS
 
   constructor(server: Server) {
     this._server = server
-    this.soapstone = new SocialFlatlanderSoapstoneNS(server)
+    this.feed = new SocialSoapstoneFeedNS(server)
   }
 }
 
-export class SocialFlatlanderSoapstoneNS {
+export class SocialSoapstoneFeedNS {
+  _server: Server
+
+  constructor(server: Server) {
+    this._server = server
+  }
+
+  getPosts<AV extends AuthVerifier>(
+    cfg: ConfigOf<
+      AV,
+      SocialSoapstoneFeedGetPosts.Handler<ExtractAuth<AV>>,
+      SocialSoapstoneFeedGetPosts.HandlerReqCtx<ExtractAuth<AV>>
+    >,
+  ) {
+    const nsid = 'social.soapstone.feed.getPosts' // @ts-ignore
+    return this._server.xrpc.method(nsid, cfg)
+  }
+}
+
+export class ComNS {
+  _server: Server
+  atproto: ComAtprotoNS
+
+  constructor(server: Server) {
+    this._server = server
+    this.atproto = new ComAtprotoNS(server)
+  }
+}
+
+export class ComAtprotoNS {
+  _server: Server
+  repo: ComAtprotoRepoNS
+
+  constructor(server: Server) {
+    this._server = server
+    this.repo = new ComAtprotoRepoNS(server)
+  }
+}
+
+export class ComAtprotoRepoNS {
   _server: Server
 
   constructor(server: Server) {

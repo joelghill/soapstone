@@ -3,27 +3,23 @@
  */
 import { type ValidationResult, BlobRef } from '@atproto/lexicon'
 import { CID } from 'multiformats/cid'
-import { validate as _validate } from '../../../../../lexicons'
+import { validate as _validate } from '../../../../lexicons'
 import {
   type $Typed,
   is$typed as _is$typed,
   type OmitKey,
-} from '../../../../../util'
-import type * as SocialFlatlanderSoapstoneMessageEnDefs from './en/defs.js'
+} from '../../../../util'
+import type * as SocialSoapstoneMessageEnDefs from './en/defs.js'
 
 const is$typed = _is$typed,
   validate = _validate
-const id = 'social.flatlander.soapstone.message.defs'
+const id = 'social.soapstone.message.defs'
 
 /** A message part consisting of a base phrase and a fill phrase. */
 export interface MessagePart {
-  $type?: 'social.flatlander.soapstone.message.defs#messagePart'
-  base:
-    | $Typed<SocialFlatlanderSoapstoneMessageEnDefs.BasePhrase>
-    | { $type: string }
-  fill:
-    | $Typed<SocialFlatlanderSoapstoneMessageEnDefs.FillPhrase>
-    | { $type: string }
+  $type?: 'social.soapstone.message.defs#messagePart'
+  base: $Typed<SocialSoapstoneMessageEnDefs.BasePhrase> | { $type: string }
+  fill: $Typed<SocialSoapstoneMessageEnDefs.FillPhrase> | { $type: string }
 }
 
 const hashMessagePart = 'messagePart'

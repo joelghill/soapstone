@@ -1,94 +1,94 @@
-import SqliteDb from 'better-sqlite3'
-import {
-  Kysely,
-  Migrator,
-  SqliteDialect,
-  Migration,
-  MigrationProvider,
-} from 'kysely'
+import knex, { Knex } from "knex";
+import postgis from "knex-postgis";
+import { env } from "#/lib/env";
 
 // Types
-
-export type DatabaseSchema = {
-  status: Status
-  auth_session: AuthSession
-  auth_state: AuthState
+export interface Status {
+  uri: string;
+  authorDid: string;
+  status: string;
+  createdAt: string;
+  indexedAt: string;
 }
 
-export type Status = {
-  uri: string
-  authorDid: string
-  status: string
-  createdAt: string
-  indexedAt: string
+export interface Post {
+  uri: string;
+  authorDid: string;
+  text: string;
+  location: GeoJSON.Point;
+  elevation: number | null;
+  createdAt: string;
+  indexedAt: string;
 }
 
-export type AuthSession = {
-  key: string
-  session: AuthSessionJson
+export interface AuthSession {
+  key: string;
+  session: string;
 }
 
-export type AuthState = {
-  key: string
-  state: AuthStateJson
+export interface AuthState {
+  key: string;
+  state: string;
 }
 
-type AuthStateJson = string
-
-type AuthSessionJson = string
-
-// Migrations
-
-const migrations: Record<string, Migration> = {}
-
-const migrationProvider: MigrationProvider = {
-  async getMigrations() {
-    return migrations
-  },
+export interface Rating {
+  uri: string;
+  authorDid: string;
+  postUri: string;
+  positive: boolean;
+  createdAt: string;
+  indexedAt: string;
 }
 
-migrations['001'] = {
-  async up(db: Kysely<unknown>) {
-    await db.schema
-      .createTable('status')
-      .addColumn('uri', 'varchar', (col) => col.primaryKey())
-      .addColumn('authorDid', 'varchar', (col) => col.notNull())
-      .addColumn('status', 'varchar', (col) => col.notNull())
-      .addColumn('createdAt', 'varchar', (col) => col.notNull())
-      .addColumn('indexedAt', 'varchar', (col) => col.notNull())
-      .execute()
-    await db.schema
-      .createTable('auth_session')
-      .addColumn('key', 'varchar', (col) => col.primaryKey())
-      .addColumn('session', 'varchar', (col) => col.notNull())
-      .execute()
-    await db.schema
-      .createTable('auth_state')
-      .addColumn('key', 'varchar', (col) => col.primaryKey())
-      .addColumn('state', 'varchar', (col) => col.notNull())
-      .execute()
-  },
-  async down(db: Kysely<unknown>) {
-    await db.schema.dropTable('auth_state').execute()
-    await db.schema.dropTable('auth_session').execute()
-    await db.schema.dropTable('status').execute()
-  },
-}
+// Database instance
+let dbInstance: Database | null = null;
 
-// APIs
+export const createDb = (): Database => {
+  if (dbInstance) {
+    return dbInstance;
+  }
 
-export const createDb = (location: string): Database => {
-  return new Kysely<DatabaseSchema>({
-    dialect: new SqliteDialect({
-      database: new SqliteDb(location),
-    }),
-  })
-}
+  const config: Knex.Config = {
+    client: "pg",
+    connection: {
+      host: env.DB_HOST,
+      port: env.DB_PORT,
+      database: env.DB_NAME,
+      user: env.DB_USER,
+      password: env.DB_PASSWORD,
+    },
+    pool: {
+      min: 2,
+      max: 10,
+    },
+    migrations: {
+      tableName: "knex_migrations",
+      directory: "./migrations",
+    },
+  };
+
+  dbInstance = knex(config);
+
+  // Attach PostGIS functions
+  const st = postgis(dbInstance);
+
+  return dbInstance;
+};
 
 export const migrateToLatest = async (db: Database) => {
-  const migrator = new Migrator({ db, provider: migrationProvider })
-  const { error } = await migrator.migrateToLatest()
-  if (error) throw error
-}
+  try {
+    await db.migrate.latest();
+  } catch (error) {
+    console.error("Migration failed:", error);
+    throw error;
+  }
+};
 
-export type Database = Kysely<DatabaseSchema>
+export const closeDb = async () => {
+  if (dbInstance) {
+    await dbInstance.destroy();
+    dbInstance = null;
+  }
+};
+
+export type Database = Knex<Status & AuthSession & AuthState & Rating>;

@@ -1,16 +1,20 @@
-import dotenv from 'dotenv'
-import { cleanEnv, host, port, str, testOnly } from 'envalid'
+import dotenv from "dotenv";
+import { cleanEnv, host, port, str, testOnly } from "envalid";
 
-dotenv.config()
+dotenv.config();
 
 export const env = cleanEnv(process.env, {
   NODE_ENV: str({
-    devDefault: testOnly('test'),
-    choices: ['development', 'production', 'test'],
+    devDefault: testOnly("test"),
+    choices: ["development", "production", "test"],
   }),
-  HOST: host({ devDefault: testOnly('localhost') }),
+  HOST: host({ devDefault: testOnly("localhost") }),
   PORT: port({ devDefault: testOnly(3000) }),
   PUBLIC_URL: str({}),
-  DB_PATH: str({ devDefault: ':memory:' }),
-  COOKIE_SECRET: str({ devDefault: '00000000000000000000000000000000' }),
-})
+  DB_HOST: str({ devDefault: "localhost" }),
+  DB_PORT: port({ devDefault: 5432 }),
+  DB_NAME: str({ devDefault: "soapstone" }),
+  DB_USER: str({ devDefault: "postgres" }),
+  DB_PASSWORD: str({ devDefault: "" }),
+  COOKIE_SECRET: str({ devDefault: "00000000000000000000000000000000" }),
+});

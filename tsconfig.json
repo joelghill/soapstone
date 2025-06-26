@@ -4,7 +4,9 @@
     "module": "CommonJS",
     "baseUrl": ".",
     "paths": {
-      "#/*": ["src/*"]
+      "#/*": [
+        "src/*"
+      ]
     },
     "moduleResolution": "Node10",
     "outDir": "dist",
@@ -12,8 +14,16 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "types": [
+      "node",
+      "jest"
+    ],
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules"]
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

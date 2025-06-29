@@ -10,6 +10,8 @@ import {
 } from '@atproto/xrpc-server'
 import { schemas } from './lexicons.js'
 import * as SocialSoapstoneFeedGetPosts from './types/social/soapstone/feed/getPosts.js'
+import * as ComAtprotoRepoCreateRecord from './types/com/atproto/repo/createRecord.js'
+import * as SocialSoapstoneFeedDeletePost from './types/social/soapstone/feed/deletePost.js'
 
 export function createServer(options?: XrpcOptions): Server {
   return new Server(options)
@@ -17,35 +19,84 @@ export function createServer(options?: XrpcOptions): Server {
 
 export class Server {
   xrpc: XrpcServer
-  xyz: XyzNS
-  social: SocialNS
-  com: ComNS
   app: AppNS
+  com: ComNS
+  social: SocialNS
+  xyz: XyzNS
 
   constructor(options?: XrpcOptions) {
     this.xrpc = createXrpcServer(schemas, options)
-    this.xyz = new XyzNS(this)
-    this.social = new SocialNS(this)
-    this.com = new ComNS(this)
     this.app = new AppNS(this)
+    this.com = new ComNS(this)
+    this.social = new SocialNS(this)
+    this.xyz = new XyzNS(this)
   }
 }
 
-export class XyzNS {
+export class AppNS {
   _server: Server
-  statusphere: XyzStatusphereNS
+  bsky: AppBskyNS
 
   constructor(server: Server) {
     this._server = server
-    this.statusphere = new XyzStatusphereNS(server)
+    this.bsky = new AppBskyNS(server)
   }
 }
 
-export class XyzStatusphereNS {
+export class AppBskyNS {
+  _server: Server
+  actor: AppBskyActorNS
+
+  constructor(server: Server) {
+    this._server = server
+    this.actor = new AppBskyActorNS(server)
+  }
+}
+
+export class AppBskyActorNS {
   _server: Server
 
   constructor(server: Server) {
     this._server = server
+  }
+}
+
+export class ComNS {
+  _server: Server
+  atproto: ComAtprotoNS
+
+  constructor(server: Server) {
+    this._server = server
+    this.atproto = new ComAtprotoNS(server)
+  }
+}
+
+export class ComAtprotoNS {
+  _server: Server
+  repo: ComAtprotoRepoNS
+
+  constructor(server: Server) {
+    this._server = server
+    this.repo = new ComAtprotoRepoNS(server)
+  }
+}
+
+export class ComAtprotoRepoNS {
+  _server: Server
+
+  constructor(server: Server) {
+    this._server = server
+  }
+
+  createRecord<AV extends AuthVerifier>(
+    cfg: ConfigOf<
+      AV,
+      ComAtprotoRepoCreateRecord.Handler<ExtractAuth<AV>>,
+      ComAtprotoRepoCreateRecord.HandlerReqCtx<ExtractAuth<AV>>
+    >,
+  ) {
+    const nsid = 'com.atproto.repo.createRecord' // @ts-ignore
+    return this._server.xrpc.method(nsid, cfg)
   }
 }
 
@@ -86,57 +137,30 @@ export class SocialSoapstoneFeedNS {
     const nsid = 'social.soapstone.feed.getPosts' // @ts-ignore
     return this._server.xrpc.method(nsid, cfg)
   }
-}
 
-export class ComNS {
-  _server: Server
-  atproto: ComAtprotoNS
-
-  constructor(server: Server) {
-    this._server = server
-    this.atproto = new ComAtprotoNS(server)
+  deletePost<AV extends AuthVerifier>(
+    cfg: ConfigOf<
+      AV,
+      SocialSoapstoneFeedDeletePost.Handler<ExtractAuth<AV>>,
+      SocialSoapstoneFeedDeletePost.HandlerReqCtx<ExtractAuth<AV>>
+    >,
+  ) {
+    const nsid = 'social.soapstone.feed.deletePost' // @ts-ignore
+    return this._server.xrpc.method(nsid, cfg)
   }
 }
 
-export class ComAtprotoNS {
+export class XyzNS {
   _server: Server
-  repo: ComAtprotoRepoNS
+  statusphere: XyzStatusphereNS
 
   constructor(server: Server) {
     this._server = server
-    this.repo = new ComAtprotoRepoNS(server)
+    this.statusphere = new XyzStatusphereNS(server)
   }
 }
 
-export class ComAtprotoRepoNS {
-  _server: Server
-
-  constructor(server: Server) {
-    this._server = server
-  }
-}
-
-export class AppNS {
-  _server: Server
-  bsky: AppBskyNS
-
-  constructor(server: Server) {
-    this._server = server
-    this.bsky = new AppBskyNS(server)
-  }
-}
-
-export class AppBskyNS {
-  _server: Server
-  actor: AppBskyActorNS
-
-  constructor(server: Server) {
-    this._server = server
-    this.actor = new AppBskyActorNS(server)
-  }
-}
-
-export class AppBskyActorNS {
+export class XyzStatusphereNS {
   _server: Server
 
   constructor(server: Server) {

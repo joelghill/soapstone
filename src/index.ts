@@ -5,7 +5,7 @@ import { pino } from "pino";
 import type { OAuthClient } from "@atproto/oauth-client-node";
 import { Firehose } from "@atproto/sync";
 
-import { createDb, migrateToLatest } from "#/db";
+import { createDb, migrateToLatest } from "#/lib/db";
 import { env } from "#/lib/env";
 import { createIngester } from "#/ingester";
 import { createRouter } from "#/routes";
@@ -14,9 +14,10 @@ import {
   createBidirectionalResolver,
   createIdResolver,
   BidirectionalResolver,
-} from "#/id-resolver";
-import type { Database } from "#/db";
+} from "#/lib/id-resolver";
+import type { Database } from "#/lib/db";
 import { IdResolver, MemoryCache } from "@atproto/identity";
+import { createServer, Server as LexServer } from "./lexicon";
 
 // Application state passed to the router and elsewhere
 export type AppContext = {
@@ -58,18 +59,20 @@ export class Server {
     // Subscribe to events on the firehose
     ingester.start();
 
-    // Create our server
-    const app: Express = express();
-    app.set("trust proxy", true);
+    const lexiconServer: LexServer = createServer();
 
-    // Routes & middlewares
-    const router = createRouter(ctx);
-    app.use(express.json());
-    app.use(express.urlencoded({ extended: true }));
-    app.use(router);
-    app.use((_req, res) => {
-      res.sendStatus(404);
-    });
+    // Create our server
+    const app: Express = lexiconServer.xrpc.router;
+    // app.set("trust proxy", true);
+
+    // // Routes & middlewares
+    // const router = createRouter(ctx);
+    // app.use(express.json());
+    // app.use(express.urlencoded({ extended: true }));
+    // app.use(router);
+    // app.use((_req, res) => {
+    //   res.sendStatus(404);
+    // });
 
     // Bind our server to the port
     const server = app.listen(env.PORT);

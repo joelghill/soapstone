@@ -10,306 +10,60 @@ import {
 import { type $Typed, is$typed, maybe$typed } from './util.js'
 
 export const schemaDict = {
-  XyzStatusphereStatus: {
+  AppBskyActorProfile: {
     lexicon: 1,
-    id: 'xyz.statusphere.status',
+    id: 'app.bsky.actor.profile',
     defs: {
       main: {
         type: 'record',
-        key: 'tid',
+        description: 'A declaration of a Bluesky account profile.',
+        key: 'literal:self',
         record: {
           type: 'object',
-          required: ['status', 'createdAt'],
           properties: {
-            status: {
+            displayName: {
               type: 'string',
-              minLength: 1,
-              maxGraphemes: 1,
-              maxLength: 32,
+              maxGraphemes: 64,
+              maxLength: 640,
             },
-            createdAt: {
+            description: {
               type: 'string',
-              format: 'datetime',
+              description: 'Free-form profile description text.',
+              maxGraphemes: 256,
+              maxLength: 2560,
             },
-          },
-        },
-      },
-    },
-  },
-  SocialSoapstoneActorDefs: {
-    lexicon: 1,
-    id: 'social.soapstone.actor.defs',
-    defs: {
-      profileViewMinimal: {
-        type: 'object',
-        required: ['did', 'handle'],
-        properties: {
-          did: {
-            type: 'string',
-            format: 'did',
-          },
-          handle: {
-            type: 'string',
-            format: 'handle',
-          },
-          displayName: {
-            type: 'string',
-            maxGraphemes: 64,
-            maxLength: 640,
-          },
-          avatar: {
-            type: 'string',
-            format: 'uri',
-          },
-        },
-      },
-    },
-  },
-  SocialSoapstoneMessageDefs: {
-    lexicon: 1,
-    id: 'social.soapstone.message.defs',
-    defs: {
-      messagePart: {
-        type: 'object',
-        description:
-          'A message part consisting of a base phrase and a fill phrase.',
-        required: ['base', 'fill'],
-        properties: {
-          base: {
-            type: 'union',
-            description: 'Base phrase',
-            refs: ['lex:social.soapstone.message.en.defs#basePhrase'],
-          },
-          fill: {
-            type: 'union',
-            description: 'Fill phrase',
-            refs: ['lex:social.soapstone.message.en.defs#fillPhrase'],
-          },
-        },
-      },
-      message: {
-        type: 'array',
-        description:
-          'A message consisting of a series of bases phrases paired with fill phrases.',
-        items: {
-          type: 'ref',
-          ref: 'lex:social.soapstone.message.defs#messagePart',
-        },
-      },
-    },
-  },
-  SocialSoapstoneMessageEnDefs: {
-    lexicon: 1,
-    id: 'social.soapstone.message.en.defs',
-    defs: {
-      basePhrase: {
-        type: 'string',
-        description:
-          "Base phrase for the message where the '****' is replaced with a fillPhrase value",
-        enum: ['**** ahead', 'Be wary of ****', 'Try ****', 'Need ****'],
-      },
-      fillPhrase: {
-        type: 'string',
-        description:
-          "Fill phrase for the message where the value replaces the '****' in the basePhrase",
-        enum: ['Enemy', 'Tough enemy', 'Hollow', 'Soldier'],
-      },
-    },
-  },
-  SocialSoapstoneLocationDefs: {
-    lexicon: 1,
-    id: 'social.soapstone.location.defs',
-    defs: {
-      location: {
-        type: 'object',
-        description: 'A location in a 3D reference system.',
-        required: ['uri'],
-        properties: {
-          uri: {
-            type: 'string',
-            format: 'uri',
-            description:
-              "A geo URI using a scheme defined by the Internet Engineering Task Force's RFC 5870 (published 8 June 2010).",
-          },
-        },
-      },
-    },
-  },
-  SocialSoapstoneFeedDefs: {
-    lexicon: 1,
-    id: 'social.soapstone.feed.defs',
-    defs: {
-      postView: {
-        type: 'object',
-        required: ['uri', 'cid', 'author', 'record', 'indexedAt'],
-        properties: {
-          uri: {
-            type: 'string',
-            format: 'at-uri',
-          },
-          cid: {
-            type: 'string',
-            format: 'cid',
-          },
-          author: {
-            type: 'ref',
-            ref: 'lex:social.soapstone.actor.defs#profileViewMinimal',
-          },
-          record: {
-            type: 'ref',
-            ref: 'lex:social.soapstone.feed.post#main',
-          },
-          positiveRatingsCount: {
-            type: 'integer',
-          },
-          negativeRatingsCount: {
-            type: 'integer',
-          },
-          indexedAt: {
-            type: 'string',
-            format: 'datetime',
-          },
-          viewer: {
-            type: 'ref',
-            ref: 'lex:social.soapstone.feed.defs#viewerState',
-          },
-        },
-      },
-      viewerState: {
-        type: 'object',
-        description:
-          "Metadata about the requesting account's relationship with the subject content.",
-        properties: {
-          rating: {
-            type: 'string',
-            format: 'at-uri',
-          },
-        },
-      },
-    },
-  },
-  SocialSoapstoneFeedGetPosts: {
-    lexicon: 1,
-    id: 'social.soapstone.feed.getPosts',
-    defs: {
-      main: {
-        type: 'query',
-        description: 'Gets soapstone posts in a location',
-        parameters: {
-          type: 'params',
-          required: ['location'],
-          properties: {
-            location: {
-              type: 'string',
+            avatar: {
+              type: 'blob',
               description:
-                "The requeter's current location as described by a geo URI, a scheme defined by the Internet Engineering Task Force's RFC 5870 (published 8 June 2010).",
-              format: 'uri',
+                "Small image to be displayed next to posts from account. AKA, 'profile picture'",
+              accept: ['image/png', 'image/jpeg'],
+              maxSize: 1000000,
             },
-            radius: {
-              type: 'integer',
+            banner: {
+              type: 'blob',
               description:
-                'The radius in meters around the location to search for posts',
-              minimum: 1,
-              maximum: 1000,
+                'Larger horizontal image to display behind profile view.',
+              accept: ['image/png', 'image/jpeg'],
+              maxSize: 1000000,
             },
-          },
-        },
-        output: {
-          encoding: 'application/json',
-          schema: {
-            type: 'object',
-            required: ['posts'],
-            properties: {
-              posts: {
-                type: 'array',
-                items: {
-                  type: 'ref',
-                  ref: 'lex:social.soapstone.feed.defs#postView',
-                },
-              },
+            labels: {
+              type: 'union',
+              description:
+                'Self-label values, specific to the Bluesky application, on the overall account.',
+              refs: ['lex:com.atproto.label.defs#selfLabels'],
             },
-          },
-        },
-      },
-    },
-  },
-  SocialSoapstoneFeedPost: {
-    lexicon: 1,
-    id: 'social.soapstone.feed.post',
-    defs: {
-      main: {
-        type: 'record',
-        key: 'tid',
-        record: {
-          type: 'object',
-          required: ['text', 'location', 'createdAt'],
-          properties: {
-            text: {
-              type: 'ref',
-              ref: 'lex:social.soapstone.message.defs#message',
-            },
-            location: {
-              type: 'ref',
-              ref: 'lex:social.soapstone.location.defs#location',
-            },
-            createdAt: {
-              type: 'string',
-              format: 'datetime',
-            },
-          },
-        },
-      },
-    },
-  },
-  SocialSoapstoneFeedRating: {
-    lexicon: 1,
-    id: 'social.soapstone.feed.rating',
-    defs: {
-      main: {
-        type: 'record',
-        description:
-          'Record declaring a positive or negative rating of a piece of subject content.',
-        key: 'tid',
-        record: {
-          type: 'object',
-          required: ['message', 'value', 'createdAt', 'via'],
-          properties: {
-            message: {
+            joinedViaStarterPack: {
               type: 'ref',
               ref: 'lex:com.atproto.repo.strongRef',
             },
-            value: {
-              type: 'boolean',
+            pinnedPost: {
+              type: 'ref',
+              ref: 'lex:com.atproto.repo.strongRef',
             },
             createdAt: {
               type: 'string',
               format: 'datetime',
             },
-            via: {
-              type: 'ref',
-              ref: 'lex:com.atproto.repo.strongRef',
-            },
-          },
-        },
-      },
-    },
-  },
-  ComAtprotoRepoStrongRef: {
-    lexicon: 1,
-    id: 'com.atproto.repo.strongRef',
-    description: 'A URI with a content-hash fingerprint.',
-    defs: {
-      main: {
-        type: 'object',
-        required: ['uri', 'cid'],
-        properties: {
-          uri: {
-            type: 'string',
-            format: 'at-uri',
-          },
-          cid: {
-            type: 'string',
-            format: 'cid',
           },
         },
       },
@@ -494,55 +248,428 @@ export const schemaDict = {
       },
     },
   },
-  AppBskyActorProfile: {
+  ComAtprotoRepoStrongRef: {
     lexicon: 1,
-    id: 'app.bsky.actor.profile',
+    id: 'com.atproto.repo.strongRef',
+    description: 'A URI with a content-hash fingerprint.',
+    defs: {
+      main: {
+        type: 'object',
+        required: ['uri', 'cid'],
+        properties: {
+          uri: {
+            type: 'string',
+            format: 'at-uri',
+          },
+          cid: {
+            type: 'string',
+            format: 'cid',
+          },
+        },
+      },
+    },
+  },
+  ComAtprotoRepoDefs: {
+    lexicon: 1,
+    id: 'com.atproto.repo.defs',
+    defs: {
+      commitMeta: {
+        type: 'object',
+        required: ['cid', 'rev'],
+        properties: {
+          cid: {
+            type: 'string',
+            format: 'cid',
+          },
+          rev: {
+            type: 'string',
+            format: 'tid',
+          },
+        },
+      },
+    },
+  },
+  SocialSoapstoneFeedPost: {
+    lexicon: 1,
+    id: 'social.soapstone.feed.post',
     defs: {
       main: {
         type: 'record',
-        description: 'A declaration of a Bluesky account profile.',
-        key: 'literal:self',
+        key: 'tid',
         record: {
           type: 'object',
+          required: ['text', 'location', 'createdAt'],
           properties: {
-            displayName: {
+            text: {
+              type: 'ref',
+              ref: 'lex:social.soapstone.message.defs#message',
+            },
+            location: {
+              type: 'ref',
+              ref: 'lex:social.soapstone.location.defs#location',
+            },
+            createdAt: {
               type: 'string',
-              maxGraphemes: 64,
-              maxLength: 640,
+              format: 'datetime',
             },
-            description: {
-              type: 'string',
-              description: 'Free-form profile description text.',
-              maxGraphemes: 256,
-              maxLength: 2560,
-            },
-            avatar: {
-              type: 'blob',
-              description:
-                "Small image to be displayed next to posts from account. AKA, 'profile picture'",
-              accept: ['image/png', 'image/jpeg'],
-              maxSize: 1000000,
-            },
-            banner: {
-              type: 'blob',
-              description:
-                'Larger horizontal image to display behind profile view.',
-              accept: ['image/png', 'image/jpeg'],
-              maxSize: 1000000,
-            },
-            labels: {
-              type: 'union',
-              description:
-                'Self-label values, specific to the Bluesky application, on the overall account.',
-              refs: ['lex:com.atproto.label.defs#selfLabels'],
-            },
-            joinedViaStarterPack: {
+          },
+        },
+      },
+    },
+  },
+  SocialSoapstoneFeedRating: {
+    lexicon: 1,
+    id: 'social.soapstone.feed.rating',
+    defs: {
+      main: {
+        type: 'record',
+        description:
+          'Record declaring a positive or negative rating of a piece of subject content.',
+        key: 'tid',
+        record: {
+          type: 'object',
+          required: ['message', 'value', 'createdAt', 'via'],
+          properties: {
+            message: {
               type: 'ref',
               ref: 'lex:com.atproto.repo.strongRef',
             },
-            pinnedPost: {
+            value: {
+              type: 'boolean',
+            },
+            createdAt: {
+              type: 'string',
+              format: 'datetime',
+            },
+            via: {
               type: 'ref',
               ref: 'lex:com.atproto.repo.strongRef',
+            },
+          },
+        },
+      },
+    },
+  },
+  SocialSoapstoneFeedDefs: {
+    lexicon: 1,
+    id: 'social.soapstone.feed.defs',
+    defs: {
+      postView: {
+        type: 'object',
+        required: ['uri', 'cid', 'author', 'record', 'indexedAt'],
+        properties: {
+          uri: {
+            type: 'string',
+            format: 'at-uri',
+          },
+          cid: {
+            type: 'string',
+            format: 'cid',
+          },
+          author: {
+            type: 'ref',
+            ref: 'lex:social.soapstone.actor.defs#profileViewMinimal',
+          },
+          record: {
+            type: 'ref',
+            ref: 'lex:social.soapstone.feed.post',
+          },
+          positiveRatingsCount: {
+            type: 'integer',
+          },
+          negativeRatingsCount: {
+            type: 'integer',
+          },
+          indexedAt: {
+            type: 'string',
+            format: 'datetime',
+          },
+          viewer: {
+            type: 'ref',
+            ref: 'lex:social.soapstone.feed.defs#viewerState',
+          },
+        },
+      },
+      viewerState: {
+        type: 'object',
+        description:
+          "Metadata about the requesting account's relationship with the subject content.",
+        properties: {
+          rating: {
+            type: 'string',
+            format: 'at-uri',
+          },
+        },
+      },
+    },
+  },
+  SocialSoapstoneFeedGetPosts: {
+    lexicon: 1,
+    id: 'social.soapstone.feed.getPosts',
+    defs: {
+      main: {
+        type: 'query',
+        description: 'Gets soapstone posts in a location',
+        parameters: {
+          type: 'params',
+          required: ['location'],
+          properties: {
+            location: {
+              type: 'string',
+              description:
+                "The requeter's current location as described by a geo URI, a scheme defined by the Internet Engineering Task Force's RFC 5870 (published 8 June 2010).",
+              format: 'uri',
+            },
+            radius: {
+              type: 'integer',
+              description:
+                'The radius in meters around the location to search for posts',
+              minimum: 1,
+              maximum: 1000,
+            },
+          },
+        },
+        output: {
+          encoding: 'application/json',
+          schema: {
+            type: 'object',
+            required: ['posts'],
+            properties: {
+              posts: {
+                type: 'array',
+                items: {
+                  type: 'ref',
+                  ref: 'lex:social.soapstone.feed.defs#postView',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+  ComAtprotoRepoCreateRecord: {
+    lexicon: 1,
+    id: 'com.atproto.repo.createRecord',
+    defs: {
+      main: {
+        type: 'procedure',
+        description:
+          'Create a single new post. Requires auth, implemented by App View.',
+        input: {
+          encoding: 'application/json',
+          schema: {
+            type: 'object',
+            required: ['text', 'location'],
+            properties: {
+              text: {
+                type: 'ref',
+                ref: 'lex:social.soapstone.message.defs#message',
+              },
+              location: {
+                type: 'ref',
+                ref: 'lex:social.soapstone.location.defs#location',
+              },
+            },
+          },
+        },
+        output: {
+          encoding: 'application/json',
+          schema: {
+            type: 'object',
+            required: ['uri', 'cid'],
+            properties: {
+              uri: {
+                type: 'string',
+                format: 'at-uri',
+              },
+              cid: {
+                type: 'string',
+                format: 'cid',
+              },
+              commit: {
+                type: 'ref',
+                ref: 'lex:com.atproto.repo.defs#commitMeta',
+              },
+              validationStatus: {
+                type: 'string',
+                knownValues: ['valid', 'unknown'],
+              },
+            },
+          },
+        },
+        errors: [
+          {
+            name: 'InvalidGeoURI',
+            description:
+              'Indicates that the submitted location is not a valid Geo URI.',
+          },
+          {
+            name: 'InvalidSwap',
+            description:
+              "Indicates that 'swapCommit' didn't match current repo commit.",
+          },
+        ],
+      },
+    },
+  },
+  SocialSoapstoneFeedDeletePost: {
+    lexicon: 1,
+    id: 'social.soapstone.feed.deletePost',
+    defs: {
+      main: {
+        type: 'procedure',
+        description:
+          "Delete a soapstone post, or ensure it doesn't exist. Requires auth, implemented by App View.",
+        input: {
+          encoding: 'application/json',
+          schema: {
+            type: 'object',
+            required: ['rkey'],
+            properties: {
+              rkey: {
+                type: 'string',
+                format: 'record-key',
+                description: 'The Record Key.',
+              },
+            },
+          },
+        },
+        output: {
+          encoding: 'application/json',
+          schema: {
+            type: 'object',
+            properties: {
+              commit: {
+                type: 'ref',
+                ref: 'lex:com.atproto.repo.defs#commitMeta',
+              },
+            },
+          },
+        },
+        errors: [
+          {
+            name: 'InvalidSwap',
+          },
+        ],
+      },
+    },
+  },
+  SocialSoapstoneLocationDefs: {
+    lexicon: 1,
+    id: 'social.soapstone.location.defs',
+    defs: {
+      location: {
+        type: 'object',
+        description: 'A location in a 3D reference system.',
+        required: ['uri'],
+        properties: {
+          uri: {
+            type: 'string',
+            format: 'uri',
+            description:
+              "A geo URI using a scheme defined by the Internet Engineering Task Force's RFC 5870 (published 8 June 2010).",
+          },
+        },
+      },
+    },
+  },
+  SocialSoapstoneMessageDefs: {
+    lexicon: 1,
+    id: 'social.soapstone.message.defs',
+    defs: {
+      messagePart: {
+        type: 'object',
+        description:
+          'A message part consisting of a base phrase and a fill phrase.',
+        required: ['base', 'fill'],
+        properties: {
+          base: {
+            type: 'union',
+            description: 'Base phrase',
+            refs: ['lex:social.soapstone.message.en.defs#basePhrase'],
+          },
+          fill: {
+            type: 'union',
+            description: 'Fill phrase',
+            refs: ['lex:social.soapstone.message.en.defs#fillPhrase'],
+          },
+        },
+      },
+      message: {
+        type: 'array',
+        description:
+          'A message consisting of a series of bases phrases paired with fill phrases.',
+        items: {
+          type: 'ref',
+          ref: 'lex:social.soapstone.message.defs#messagePart',
+        },
+      },
+    },
+  },
+  SocialSoapstoneMessageEnDefs: {
+    lexicon: 1,
+    id: 'social.soapstone.message.en.defs',
+    defs: {
+      basePhrase: {
+        type: 'string',
+        description:
+          "Base phrase for the message where the '****' is replaced with a fillPhrase value",
+        enum: ['**** ahead', 'Be wary of ****', 'Try ****', 'Need ****'],
+      },
+      fillPhrase: {
+        type: 'string',
+        description:
+          "Fill phrase for the message where the value replaces the '****' in the basePhrase",
+        enum: ['Enemy', 'Tough enemy', 'Hollow', 'Soldier'],
+      },
+    },
+  },
+  SocialSoapstoneActorDefs: {
+    lexicon: 1,
+    id: 'social.soapstone.actor.defs',
+    defs: {
+      profileViewMinimal: {
+        type: 'object',
+        required: ['did', 'handle'],
+        properties: {
+          did: {
+            type: 'string',
+            format: 'did',
+          },
+          handle: {
+            type: 'string',
+            format: 'handle',
+          },
+          displayName: {
+            type: 'string',
+            maxGraphemes: 64,
+            maxLength: 640,
+          },
+          avatar: {
+            type: 'string',
+            format: 'uri',
+          },
+        },
+      },
+    },
+  },
+  XyzStatusphereStatus: {
+    lexicon: 1,
+    id: 'xyz.statusphere.status',
+    defs: {
+      main: {
+        type: 'record',
+        key: 'tid',
+        record: {
+          type: 'object',
+          required: ['status', 'createdAt'],
+          properties: {
+            status: {
+              type: 'string',
+              minLength: 1,
+              maxGraphemes: 1,
+              maxLength: 32,
             },
             createdAt: {
               type: 'string',
@@ -586,16 +713,19 @@ export function validate(
 }
 
 export const ids = {
-  XyzStatusphereStatus: 'xyz.statusphere.status',
-  SocialSoapstoneActorDefs: 'social.soapstone.actor.defs',
-  SocialSoapstoneMessageDefs: 'social.soapstone.message.defs',
-  SocialSoapstoneMessageEnDefs: 'social.soapstone.message.en.defs',
-  SocialSoapstoneLocationDefs: 'social.soapstone.location.defs',
-  SocialSoapstoneFeedDefs: 'social.soapstone.feed.defs',
-  SocialSoapstoneFeedGetPosts: 'social.soapstone.feed.getPosts',
+  AppBskyActorProfile: 'app.bsky.actor.profile',
+  ComAtprotoLabelDefs: 'com.atproto.label.defs',
+  ComAtprotoRepoStrongRef: 'com.atproto.repo.strongRef',
+  ComAtprotoRepoDefs: 'com.atproto.repo.defs',
   SocialSoapstoneFeedPost: 'social.soapstone.feed.post',
   SocialSoapstoneFeedRating: 'social.soapstone.feed.rating',
-  ComAtprotoRepoStrongRef: 'com.atproto.repo.strongRef',
-  ComAtprotoLabelDefs: 'com.atproto.label.defs',
-  AppBskyActorProfile: 'app.bsky.actor.profile',
+  SocialSoapstoneFeedDefs: 'social.soapstone.feed.defs',
+  SocialSoapstoneFeedGetPosts: 'social.soapstone.feed.getPosts',
+  ComAtprotoRepoCreateRecord: 'com.atproto.repo.createRecord',
+  SocialSoapstoneFeedDeletePost: 'social.soapstone.feed.deletePost',
+  SocialSoapstoneLocationDefs: 'social.soapstone.location.defs',
+  SocialSoapstoneMessageDefs: 'social.soapstone.message.defs',
+  SocialSoapstoneMessageEnDefs: 'social.soapstone.message.en.defs',
+  SocialSoapstoneActorDefs: 'social.soapstone.actor.defs',
+  XyzStatusphereStatus: 'xyz.statusphere.status',
 } as const

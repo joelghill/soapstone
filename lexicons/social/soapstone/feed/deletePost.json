@@ -1,0 +1,37 @@
+{
+  "lexicon": 1,
+  "id": "social.soapstone.feed.deletePost",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "description": "Delete a soapstone post, or ensure it doesn't exist. Requires auth, implemented by App View.",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["rkey"],
+          "properties": {
+            "rkey": {
+              "type": "string",
+              "format": "record-key",
+              "description": "The Record Key."
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "commit": {
+              "type": "ref",
+              "ref": "com.atproto.repo.defs#commitMeta"
+            }
+          }
+        }
+      },
+      "errors": [{ "name": "InvalidSwap" }]
+    }
+  }
+}

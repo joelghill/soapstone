@@ -1,44 +1,7 @@
 import knex, { Knex } from "knex";
 import postgis from "knex-postgis";
 import { env } from "#/lib/env";
-
-// Types
-export interface Status {
-  uri: string;
-  authorDid: string;
-  status: string;
-  createdAt: string;
-  indexedAt: string;
-}
-
-export interface Post {
-  uri: string;
-  authorDid: string;
-  text: string;
-  location: GeoJSON.Point;
-  elevation: number | null;
-  createdAt: string;
-  indexedAt: string;
-}
-
-export interface AuthSession {
-  key: string;
-  session: string;
-}
-
-export interface AuthState {
-  key: string;
-  state: string;
-}
-
-export interface Rating {
-  uri: string;
-  authorDid: string;
-  postUri: string;
-  positive: boolean;
-  createdAt: string;
-  indexedAt: string;
-}
+import { Status, AuthSession, AuthState, Post, Rating } from "#/lib/entities";
 
 // Database instance
 let dbInstance: Database | null = null;
@@ -91,4 +54,4 @@ export const closeDb = async () => {
   }
 };
 
-export type Database = Knex<Status & AuthSession & AuthState & Rating>;
+export type Database = Knex<Status & AuthSession & AuthState & Rating & Post>;

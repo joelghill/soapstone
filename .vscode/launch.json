@@ -6,13 +6,13 @@
   "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/tsx",
   "console": "integratedTerminal",
   "internalConsoleOptions": "neverOpen",
+  "localRoot": "${workspaceFolder}",
   "skipFiles": [
     "<node_internals>/**",
-    "${workspaceFolder}/node_modules/**"
   ],
   "configurations": [
     {
-      "command": "npm start",
+      "command": "yarn start",
       "name": "Run npm start",
       "request": "launch",
       "type": "node-terminal"

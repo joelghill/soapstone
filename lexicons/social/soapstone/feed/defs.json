@@ -4,17 +4,20 @@
   "defs": {
     "postView": {
       "type": "object",
-      "required": ["uri", "cid", "author", "record", "indexedAt"],
+      "required": ["uri", "author_uri", "record", "indexedAt"],
       "properties": {
         "uri": { "type": "string", "format": "at-uri" },
-        "cid": { "type": "string", "format": "cid" },
-        "author": {
-          "type": "ref",
-          "ref": "social.soapstone.actor.defs#profileViewMinimal"
+        "author_uri": {
+          "type": "string",
+          "format": "at-uri",
+          "description": "The URI of the author of the post."
         },
-        "record": {
-          "type": "ref",
-          "ref": "social.soapstone.feed.post"
+        "text": {
+          "type": "string"
+        },
+        "location": {
+          "type": "string",
+          "format": "uri"
         },
         "positiveRatingsCount": { "type": "integer" },
         "negativeRatingsCount": { "type": "integer" },

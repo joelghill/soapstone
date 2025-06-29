@@ -14,7 +14,7 @@ export const env = cleanEnv(process.env, {
   DB_HOST: str({ devDefault: "localhost" }),
   DB_PORT: port({ devDefault: 5432 }),
   DB_NAME: str({ devDefault: "soapstone" }),
-  DB_USER: str({ devDefault: "postgres" }),
-  DB_PASSWORD: str({ devDefault: "" }),
+  DB_USER: str({ devDefault: "soapstone" }),
+  DB_PASSWORD: str({ devDefault: "changeme" }),
   COOKIE_SECRET: str({ devDefault: "00000000000000000000000000000000" }),
 });

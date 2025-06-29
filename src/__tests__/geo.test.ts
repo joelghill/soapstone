@@ -1,4 +1,4 @@
-import { parseGeoURI } from "#/geo";
+import { parseGeoURI } from "#/lib/geo";
 
 describe("parseGeoURI", () => {
   it("should parse a basic geo URI with latitude and longitude", () => {

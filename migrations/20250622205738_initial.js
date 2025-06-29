@@ -1,8 +1,10 @@
+import postgis from "knex-postgis";
 /**
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.up = function (knex) {
+export async function up(knex) {
+  const st = postgis(knex);
   return Promise.all([
     // Status table
     knex.schema.createTable("status", (table) => {
@@ -28,7 +30,7 @@ exports.up = function (knex) {
 
       table.index(["author_did"]);
       table.index(["created_at"]);
-      table.spatialIndex("location");
+      table.index(["location"]);
     }),
 
     // Auth session table
@@ -62,13 +64,14 @@ exports.up = function (knex) {
         .onDelete("CASCADE");
     }),
   ]);
-};
+}
 
 /**
- * @param { import("knex").Knex } knex
+ * @param { import("knex").K
+ * nex } knex
  * @returns { Promise<void> }
  */
-exports.down = function (knex) {
+export async function down(knex) {
   return Promise.all([
     knex.schema.dropTableIfExists("rating"),
     knex.schema.dropTableIfExists("auth_state"),
@@ -76,4 +79,4 @@ exports.down = function (knex) {
     knex.schema.dropTableIfExists("post"),
     knex.schema.dropTableIfExists("status"),
   ]);
-};
+}

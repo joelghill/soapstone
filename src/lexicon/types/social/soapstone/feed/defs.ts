@@ -9,8 +9,9 @@ import {
   is$typed as _is$typed,
   type OmitKey,
 } from '../../../../util'
-import type * as SocialSoapstoneActorDefs from '../actor/defs.js'
-import type * as SocialSoapstoneFeedPost from './post.js'
+import type * as SocialSoapstoneMessageDefs from '../message/defs.js'
+import type * as SocialSoapstoneLocationDefs from '../location/defs.js'
+import type * as ComAtprotoRepoDefs from '../../../com/atproto/repo/defs.js'
 
 const is$typed = _is$typed,
   validate = _validate
@@ -19,9 +20,10 @@ const id = 'social.soapstone.feed.defs'
 export interface PostView {
   $type?: 'social.soapstone.feed.defs#postView'
   uri: string
-  cid: string
-  author: SocialSoapstoneActorDefs.ProfileViewMinimal
-  record: SocialSoapstoneFeedPost.Main
+  /** The URI of the author of the post. */
+  author_uri: string
+  text: string
+  location: string
   positiveRatingsCount?: number
   negativeRatingsCount?: number
   indexedAt: string
@@ -52,4 +54,38 @@ export function isViewerState<V>(v: V) {
 
 export function validateViewerState<V>(v: V) {
   return validate<ViewerState & V>(v, id, hashViewerState)
+}
+
+export interface CreatePostSchema {
+  $type?: 'social.soapstone.feed.defs#createPostSchema'
+  message: SocialSoapstoneMessageDefs.Message
+  location: SocialSoapstoneLocationDefs.Location
+}
+
+const hashCreatePostSchema = 'createPostSchema'
+
+export function isCreatePostSchema<V>(v: V) {
+  return is$typed(v, id, hashCreatePostSchema)
+}
+
+export function validateCreatePostSchema<V>(v: V) {
+  return validate<CreatePostSchema & V>(v, id, hashCreatePostSchema)
+}
+
+export interface CreatePostResponse {
+  $type?: 'social.soapstone.feed.defs#createPostResponse'
+  uri: string
+  cid: string
+  commit?: ComAtprotoRepoDefs.CommitMeta
+  validationStatus?: 'valid' | 'unknown' | (string & {})
+}
+
+const hashCreatePostResponse = 'createPostResponse'
+
+export function isCreatePostResponse<V>(v: V) {
+  return is$typed(v, id, hashCreatePostResponse)
+}
+
+export function validateCreatePostResponse<V>(v: V) {
+  return validate<CreatePostResponse & V>(v, id, hashCreatePostResponse)
 }

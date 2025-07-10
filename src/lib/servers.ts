@@ -16,17 +16,14 @@ import {
   createIdResolver,
   BidirectionalResolver,
 } from "#/lib/id-resolver";
-import { createServer, Server as LexServer } from "./lexicon";
-import { type Options as XrpcOptions } from "@atproto/xrpc-server";
-import {
-  LexiconController,
-  SoapStoneLexiconController,
-} from "./lib/controllers";
-import { SoapStoneLexiconHandler } from "./lib/handlers";
+import type { Database } from "#/lib/db";
+import { createServer, Server as LexServer } from "../lexicon";
+import { SoapStoneLexiconController } from "./controllers";
+import { SoapStoneLexiconHandler } from "./handlers";
 
 // Application state passed to the router and elsewhere
 export type AppContext = {
-  controller: LexiconController;
+  db: Database;
   handler: SoapStoneLexiconHandler;
   ingester: Firehose;
   logger: pino.Logger;
@@ -64,26 +61,22 @@ export class SoapStoneServer {
       logger,
     );
     const ctx = {
-      controller,
+      db,
       handler,
       ingester,
       logger,
       oauthClient,
       resolver,
-    };
+    } as AppContext;
 
     // Subscribe to events on the firehose
     ingester.start();
 
-    const xrpcOptions: XrpcOptions = {
-      catchall: ctx.handler.handleCatchall,
-    };
-
-    const lexiconServer: LexServer = createServer(xrpcOptions);
+    const lexiconServer: LexServer = createServer();
 
     // Create our server
     const app: Express = lexiconServer.xrpc.router;
-    app.set("trust proxy", true);
+    // app.set("trust proxy", true);
 
     // // Routes & middlewares
     const router = createRouter(ctx);
@@ -113,18 +106,3 @@ export class SoapStoneServer {
     });
   }
 }
-
-const run = async () => {
-  const server = await SoapStoneServer.create();
-
-  const onCloseSignal = async () => {
-    setTimeout(() => process.exit(1), 10000).unref(); // Force shutdown after 10s
-    await server.close();
-    process.exit();
-  };
-
-  process.on("SIGINT", onCloseSignal);
-  process.on("SIGTERM", onCloseSignal);
-};
-
-run();

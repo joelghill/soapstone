@@ -4,7 +4,7 @@
   "defs": {
     "postView": {
       "type": "object",
-      "required": ["uri", "author_uri", "record", "indexedAt"],
+      "required": ["uri", "author_uri", "text", "location", "indexedAt"],
       "properties": {
         "uri": { "type": "string", "format": "at-uri" },
         "author_uri": {
@@ -30,6 +30,36 @@
       "description": "Metadata about the requesting account's relationship with the subject content.",
       "properties": {
         "rating": { "type": "string", "format": "at-uri" }
+      }
+    },
+    "createPostSchema": {
+      "type": "object",
+      "required": ["message", "location"],
+      "properties": {
+        "message": {
+          "type": "ref",
+          "ref": "social.soapstone.message.defs#message"
+        },
+        "location": {
+          "type": "ref",
+          "ref": "social.soapstone.location.defs#location"
+        }
+      }
+    },
+    "createPostResponse": {
+      "type": "object",
+      "required": ["uri", "cid"],
+      "properties": {
+        "uri": { "type": "string", "format": "at-uri" },
+        "cid": { "type": "string", "format": "cid" },
+        "commit": {
+          "type": "ref",
+          "ref": "com.atproto.repo.defs#commitMeta"
+        },
+        "validationStatus": {
+          "type": "string",
+          "knownValues": ["valid", "unknown"]
+        }
       }
     }
   }

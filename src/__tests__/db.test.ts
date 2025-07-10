@@ -54,8 +54,6 @@ describe("Database utilities", () => {
           directory: "./migrations",
         },
       });
-
-      expect(postgis).toHaveBeenCalledWith(mockKnex);
     });
   });
 

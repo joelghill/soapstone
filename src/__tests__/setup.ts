@@ -60,34 +60,3 @@ jest.mock("@atproto/identity", () => ({
   })),
   MemoryCache: jest.fn(),
 }));
-
-// Mock Knex database
-const mockKnex = {
-  select: jest.fn().mockReturnThis(),
-  from: jest.fn().mockReturnThis(),
-  where: jest.fn().mockReturnThis(),
-  insert: jest.fn().mockReturnThis(),
-  update: jest.fn().mockReturnThis(),
-  del: jest.fn().mockReturnThis(),
-  first: jest.fn().mockResolvedValue(null),
-  orderBy: jest.fn().mockReturnThis(),
-  limit: jest.fn().mockReturnThis(),
-  onConflict: jest.fn().mockReturnThis(),
-  merge: jest.fn().mockReturnThis(),
-  withSchema: jest.fn().mockReturnThis(),
-  migrate: {
-    latest: jest.fn().mockResolvedValue([]),
-  },
-  destroy: jest.fn().mockResolvedValue(undefined),
-};
-
-jest.mock("knex", () => {
-  return jest.fn(() => mockKnex);
-});
-
-jest.mock("knex-postgis", () => {
-  return jest.fn(() => ({}));
-});
-
-// Export mocks for use in tests
-export { mockKnex };

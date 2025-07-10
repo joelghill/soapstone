@@ -7,9 +7,9 @@
       "key": "tid",
       "record": {
         "type": "object",
-        "required": ["text", "location", "createdAt"],
+        "required": ["message", "location", "createdAt"],
         "properties": {
-          "text": {
+          "message": {
             "type": "ref",
             "ref": "social.soapstone.message.defs#message"
           },

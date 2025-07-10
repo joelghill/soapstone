@@ -18,7 +18,7 @@ const id = 'social.soapstone.feed.post'
 
 export interface Record {
   $type: 'social.soapstone.feed.post'
-  text: SocialSoapstoneMessageDefs.Message
+  message: SocialSoapstoneMessageDefs.Message
   location: SocialSoapstoneLocationDefs.Location
   createdAt: string
   [k: string]: unknown

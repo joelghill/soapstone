@@ -1,6 +1,6 @@
 {
   "lexicon": 1,
-  "id": "com.atproto.repo.createRecord",
+  "id": "social.soapstone.feed.defs.createPost",
   "defs": {
     "main": {
       "type": "procedure",
@@ -8,37 +8,15 @@
       "input": {
         "encoding": "application/json",
         "schema": {
-          "type": "object",
-          "required": ["text", "location"],
-          "properties": {
-            "text": {
-              "type": "ref",
-              "ref": "social.soapstone.message.defs#message"
-            },
-            "location": {
-              "type": "ref",
-              "ref": "social.soapstone.location.defs#location"
-            }
-          }
+          "type": "ref",
+          "ref": "social.soapstone.feed.defs#createPostSchema"
         }
       },
       "output": {
         "encoding": "application/json",
         "schema": {
-          "type": "object",
-          "required": ["uri", "cid"],
-          "properties": {
-            "uri": { "type": "string", "format": "at-uri" },
-            "cid": { "type": "string", "format": "cid" },
-            "commit": {
-              "type": "ref",
-              "ref": "com.atproto.repo.defs#commitMeta"
-            },
-            "validationStatus": {
-              "type": "string",
-              "knownValues": ["valid", "unknown"]
-            }
-          }
+          "type": "ref",
+          "ref": "social.soapstone.feed.defs#createPostResponse"
         }
       },
       "errors": [

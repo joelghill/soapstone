@@ -10,7 +10,7 @@ import {
 } from '@atproto/xrpc-server'
 import { schemas } from './lexicons.js'
 import * as SocialSoapstoneFeedGetPosts from './types/social/soapstone/feed/getPosts.js'
-import * as ComAtprotoRepoCreateRecord from './types/com/atproto/repo/createRecord.js'
+import * as SocialSoapstoneFeedDefsCreatePost from './types/social/soapstone/feed/defs/createPost.js'
 import * as SocialSoapstoneFeedDeletePost from './types/social/soapstone/feed/deletePost.js'
 
 export function createServer(options?: XrpcOptions): Server {
@@ -87,17 +87,6 @@ export class ComAtprotoRepoNS {
   constructor(server: Server) {
     this._server = server
   }
-
-  createRecord<AV extends AuthVerifier>(
-    cfg: ConfigOf<
-      AV,
-      ComAtprotoRepoCreateRecord.Handler<ExtractAuth<AV>>,
-      ComAtprotoRepoCreateRecord.HandlerReqCtx<ExtractAuth<AV>>
-    >,
-  ) {
-    const nsid = 'com.atproto.repo.createRecord' // @ts-ignore
-    return this._server.xrpc.method(nsid, cfg)
-  }
 }
 
 export class SocialNS {
@@ -122,9 +111,11 @@ export class SocialSoapstoneNS {
 
 export class SocialSoapstoneFeedNS {
   _server: Server
+  defs: SocialSoapstoneFeedDefsNS
 
   constructor(server: Server) {
     this._server = server
+    this.defs = new SocialSoapstoneFeedDefsNS(server)
   }
 
   getPosts<AV extends AuthVerifier>(
@@ -146,6 +137,25 @@ export class SocialSoapstoneFeedNS {
     >,
   ) {
     const nsid = 'social.soapstone.feed.deletePost' // @ts-ignore
+    return this._server.xrpc.method(nsid, cfg)
+  }
+}
+
+export class SocialSoapstoneFeedDefsNS {
+  _server: Server
+
+  constructor(server: Server) {
+    this._server = server
+  }
+
+  createPost<AV extends AuthVerifier>(
+    cfg: ConfigOf<
+      AV,
+      SocialSoapstoneFeedDefsCreatePost.Handler<ExtractAuth<AV>>,
+      SocialSoapstoneFeedDefsCreatePost.HandlerReqCtx<ExtractAuth<AV>>
+    >,
+  ) {
+    const nsid = 'social.soapstone.feed.defs.createPost' // @ts-ignore
     return this._server.xrpc.method(nsid, cfg)
   }
 }

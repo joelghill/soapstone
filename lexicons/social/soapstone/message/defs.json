@@ -8,14 +8,14 @@
       "required": ["base", "fill"],
       "properties": {
         "base": {
-          "type": "union",
+          "type": "ref",
           "description": "Base phrase",
-          "refs": ["social.soapstone.message.en.defs#basePhrase"]
+          "ref": "#allBasePhrases"
         },
         "fill": {
-          "type": "union",
+          "type": "ref",
           "description": "Fill phrase",
-          "refs": ["social.soapstone.message.en.defs#fillPhrase"]
+          "ref": "#allFillPhrases"
         }
       }
     },
@@ -24,8 +24,25 @@
       "description": "A message consisting of a series of bases phrases paired with fill phrases.",
       "items": {
         "type": "ref",
-        "ref": "social.soapstone.message.defs#messagePart"
+        "ref": "#messagePart"
       }
+    },
+    "allBasePhrases": {
+      "type": "union",
+      "refs": ["social.soapstone.text.en#basePhrases"]
+    },
+    "allFillPhrases": {
+      "type": "union",
+      "refs": [
+        "social.soapstone.text.en#characters",
+        "social.soapstone.text.en#objects",
+        "social.soapstone.text.en#techniques",
+        "social.soapstone.text.en#actions",
+        "social.soapstone.text.en#geography",
+        "social.soapstone.text.en#orientation",
+        "social.soapstone.text.en#bodyParts",
+        "social.soapstone.text.en#attributes"
+      ]
     }
   }
 }

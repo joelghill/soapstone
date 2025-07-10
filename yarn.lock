@@ -4793,6 +4793,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"knex-mock-client@npm:^3.0.2":
+  version: 3.0.2
+  resolution: "knex-mock-client@npm:3.0.2"
+  dependencies:
+    lodash.clonedeep: "npm:^4.5.0"
+  peerDependencies:
+    knex: ">=2.0.0"
+  checksum: 10c0/95b0430a7d5f074afb142644c0b60f8824f065608982a6321e816b9b1fcf6edb7c532cf8930372d8f5f86c57a407ab89bb076e4419cf5d0a10fb6df550dd7020
+  languageName: node
+  linkType: hard
+
 "knex-postgis@npm:^0.14.3":
   version: 0.14.3
   resolution: "knex-postgis@npm:0.14.3"
@@ -4876,6 +4887,13 @@ __metadata:
   dependencies:
     p-locate: "npm:^4.1.0"
   checksum: 10c0/33a1c5247e87e022f9713e6213a744557a3e9ec32c5d0b5efb10aa3a38177615bf90221a5592674857039c1a0fd2063b82f285702d37b792d973e9e72ace6c59
+  languageName: node
+  linkType: hard
+
+"lodash.clonedeep@npm:^4.5.0":
+  version: 4.5.0
+  resolution: "lodash.clonedeep@npm:4.5.0"
+  checksum: 10c0/2caf0e4808f319d761d2939ee0642fa6867a4bbf2cfce43276698828380756b99d4c4fa226d881655e6ac298dd453fe12a5ec8ba49861777759494c534936985
   languageName: node
   linkType: hard
 
@@ -6480,6 +6498,7 @@ __metadata:
     iron-session: "npm:^8.0.4"
     jest: "npm:^30.0.2"
     knex: "npm:^3.1.0"
+    knex-mock-client: "npm:^3.0.2"
     knex-postgis: "npm:^0.14.3"
     multiformats: "npm:^13.3.7"
     pg: "npm:^8.11.3"

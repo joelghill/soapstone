@@ -4,34 +4,23 @@
 import express from 'express'
 import { type ValidationResult, BlobRef } from '@atproto/lexicon'
 import { CID } from 'multiformats/cid'
-import { validate as _validate } from '../../../../lexicons'
+import { validate as _validate } from '../../../../../lexicons'
 import {
   type $Typed,
   is$typed as _is$typed,
   type OmitKey,
-} from '../../../../util'
+} from '../../../../../util'
 import { HandlerAuth, HandlerPipeThrough } from '@atproto/xrpc-server'
-import type * as SocialSoapstoneMessageDefs from '../../../social/soapstone/message/defs.js'
-import type * as SocialSoapstoneLocationDefs from '../../../social/soapstone/location/defs.js'
-import type * as ComAtprotoRepoDefs from './defs.js'
+import type * as SocialSoapstoneFeedDefs from '../defs.js'
 
 const is$typed = _is$typed,
   validate = _validate
-const id = 'com.atproto.repo.createRecord'
+const id = 'social.soapstone.feed.defs.createPost'
 
 export interface QueryParams {}
 
-export interface InputSchema {
-  text: SocialSoapstoneMessageDefs.Message
-  location: SocialSoapstoneLocationDefs.Location
-}
-
-export interface OutputSchema {
-  uri: string
-  cid: string
-  commit?: ComAtprotoRepoDefs.CommitMeta
-  validationStatus?: 'valid' | 'unknown' | (string & {})
-}
+export type InputSchema = SocialSoapstoneFeedDefs.CreatePostSchema
+export type OutputSchema = SocialSoapstoneFeedDefs.CreatePostResponse
 
 export interface HandlerInput {
   encoding: 'application/json'

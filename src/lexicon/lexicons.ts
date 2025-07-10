@@ -298,9 +298,9 @@ export const schemaDict = {
         key: 'tid',
         record: {
           type: 'object',
-          required: ['text', 'location', 'createdAt'],
+          required: ['message', 'location', 'createdAt'],
           properties: {
-            text: {
+            message: {
               type: 'ref',
               ref: 'lex:social.soapstone.message.defs#message',
             },
@@ -356,23 +356,23 @@ export const schemaDict = {
     defs: {
       postView: {
         type: 'object',
-        required: ['uri', 'cid', 'author', 'record', 'indexedAt'],
+        required: ['uri', 'author_uri', 'text', 'location', 'indexedAt'],
         properties: {
           uri: {
             type: 'string',
             format: 'at-uri',
           },
-          cid: {
+          author_uri: {
             type: 'string',
-            format: 'cid',
+            format: 'at-uri',
+            description: 'The URI of the author of the post.',
           },
-          author: {
-            type: 'ref',
-            ref: 'lex:social.soapstone.actor.defs#profileViewMinimal',
+          text: {
+            type: 'string',
           },
-          record: {
-            type: 'ref',
-            ref: 'lex:social.soapstone.feed.post',
+          location: {
+            type: 'string',
+            format: 'uri',
           },
           positiveRatingsCount: {
             type: 'integer',
@@ -398,6 +398,42 @@ export const schemaDict = {
           rating: {
             type: 'string',
             format: 'at-uri',
+          },
+        },
+      },
+      createPostSchema: {
+        type: 'object',
+        required: ['message', 'location'],
+        properties: {
+          message: {
+            type: 'ref',
+            ref: 'lex:social.soapstone.message.defs#message',
+          },
+          location: {
+            type: 'ref',
+            ref: 'lex:social.soapstone.location.defs#location',
+          },
+        },
+      },
+      createPostResponse: {
+        type: 'object',
+        required: ['uri', 'cid'],
+        properties: {
+          uri: {
+            type: 'string',
+            format: 'at-uri',
+          },
+          cid: {
+            type: 'string',
+            format: 'cid',
+          },
+          commit: {
+            type: 'ref',
+            ref: 'lex:com.atproto.repo.defs#commitMeta',
+          },
+          validationStatus: {
+            type: 'string',
+            knownValues: ['valid', 'unknown'],
           },
         },
       },
@@ -448,9 +484,9 @@ export const schemaDict = {
       },
     },
   },
-  ComAtprotoRepoCreateRecord: {
+  SocialSoapstoneFeedDefsCreatePost: {
     lexicon: 1,
-    id: 'com.atproto.repo.createRecord',
+    id: 'social.soapstone.feed.defs.createPost',
     defs: {
       main: {
         type: 'procedure',
@@ -459,43 +495,15 @@ export const schemaDict = {
         input: {
           encoding: 'application/json',
           schema: {
-            type: 'object',
-            required: ['text', 'location'],
-            properties: {
-              text: {
-                type: 'ref',
-                ref: 'lex:social.soapstone.message.defs#message',
-              },
-              location: {
-                type: 'ref',
-                ref: 'lex:social.soapstone.location.defs#location',
-              },
-            },
+            type: 'ref',
+            ref: 'lex:social.soapstone.feed.defs#createPostSchema',
           },
         },
         output: {
           encoding: 'application/json',
           schema: {
-            type: 'object',
-            required: ['uri', 'cid'],
-            properties: {
-              uri: {
-                type: 'string',
-                format: 'at-uri',
-              },
-              cid: {
-                type: 'string',
-                format: 'cid',
-              },
-              commit: {
-                type: 'ref',
-                ref: 'lex:com.atproto.repo.defs#commitMeta',
-              },
-              validationStatus: {
-                type: 'string',
-                knownValues: ['valid', 'unknown'],
-              },
-            },
+            type: 'ref',
+            ref: 'lex:social.soapstone.feed.defs#createPostResponse',
           },
         },
         errors: [
@@ -721,7 +729,7 @@ export const ids = {
   SocialSoapstoneFeedRating: 'social.soapstone.feed.rating',
   SocialSoapstoneFeedDefs: 'social.soapstone.feed.defs',
   SocialSoapstoneFeedGetPosts: 'social.soapstone.feed.getPosts',
-  ComAtprotoRepoCreateRecord: 'com.atproto.repo.createRecord',
+  SocialSoapstoneFeedDefsCreatePost: 'social.soapstone.feed.defs.createPost',
   SocialSoapstoneFeedDeletePost: 'social.soapstone.feed.deletePost',
   SocialSoapstoneLocationDefs: 'social.soapstone.location.defs',
   SocialSoapstoneMessageDefs: 'social.soapstone.message.defs',

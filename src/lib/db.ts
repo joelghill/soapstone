@@ -1,5 +1,4 @@
 import knex, { Knex } from "knex";
-import postgis from "knex-postgis";
 import { env } from "#/lib/env";
 import { Status, AuthSession, AuthState, Post, Rating } from "#/lib/entities";
 
@@ -31,10 +30,6 @@ export const createDb = (): Database => {
   };
 
   dbInstance = knex(config);
-
-  // Attach PostGIS functions
-  const st = postgis(dbInstance);
-
   return dbInstance;
 };
 

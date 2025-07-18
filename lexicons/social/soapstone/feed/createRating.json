@@ -1,0 +1,65 @@
+{
+  "lexicon": 1,
+  "id": "social.soapstone.feed.createRating",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "description": "Create a rating for a post. Requires auth, implemented by App View.",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["post", "value"],
+          "properties": {
+            "post": {
+              "type": "ref",
+              "ref": "com.atproto.repo.strongRef",
+              "description": "Reference to the post being rated."
+            },
+            "value": {
+              "type": "boolean",
+              "description": "The rating value. True for positive rating, false for negative rating."
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["uri", "cid"],
+          "properties": {
+            "uri": {
+              "type": "string",
+              "format": "at-uri",
+              "description": "The URI of the created rating record."
+            },
+            "cid": {
+              "type": "string",
+              "format": "cid",
+              "description": "The CID of the created rating record."
+            },
+            "commit": {
+              "type": "ref",
+              "ref": "com.atproto.repo.defs#commitMeta"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "InvalidPost",
+          "description": "The referenced post does not exist or is not accessible."
+        },
+        {
+          "name": "DuplicateRating",
+          "description": "User has already rated this post."
+        },
+        {
+          "name": "InvalidSwap",
+          "description": "Indicates that 'swapCommit' didn't match current repo commit."
+        }
+      ]
+    }
+  }
+}

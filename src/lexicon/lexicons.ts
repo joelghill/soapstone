@@ -563,6 +563,119 @@ export const schemaDict = {
       },
     },
   },
+  SocialSoapstoneFeedCreateRating: {
+    lexicon: 1,
+    id: 'social.soapstone.feed.createRating',
+    defs: {
+      main: {
+        type: 'procedure',
+        description:
+          'Create a rating for a post. Requires auth, implemented by App View.',
+        input: {
+          encoding: 'application/json',
+          schema: {
+            type: 'object',
+            required: ['post', 'value'],
+            properties: {
+              post: {
+                type: 'ref',
+                ref: 'lex:com.atproto.repo.strongRef',
+                description: 'Reference to the post being rated.',
+              },
+              value: {
+                type: 'boolean',
+                description:
+                  'The rating value. True for positive rating, false for negative rating.',
+              },
+            },
+          },
+        },
+        output: {
+          encoding: 'application/json',
+          schema: {
+            type: 'object',
+            required: ['uri', 'cid'],
+            properties: {
+              uri: {
+                type: 'string',
+                format: 'at-uri',
+                description: 'The URI of the created rating record.',
+              },
+              cid: {
+                type: 'string',
+                format: 'cid',
+                description: 'The CID of the created rating record.',
+              },
+              commit: {
+                type: 'ref',
+                ref: 'lex:com.atproto.repo.defs#commitMeta',
+              },
+            },
+          },
+        },
+        errors: [
+          {
+            name: 'InvalidPost',
+            description:
+              'The referenced post does not exist or is not accessible.',
+          },
+          {
+            name: 'DuplicateRating',
+            description: 'User has already rated this post.',
+          },
+          {
+            name: 'InvalidSwap',
+            description:
+              "Indicates that 'swapCommit' didn't match current repo commit.",
+          },
+        ],
+      },
+    },
+  },
+  SocialSoapstoneFeedDeleteRating: {
+    lexicon: 1,
+    id: 'social.soapstone.feed.deleteRating',
+    defs: {
+      main: {
+        type: 'procedure',
+        description:
+          "Delete a rating, or ensure it doesn't exist. Requires auth, implemented by App View.",
+        input: {
+          encoding: 'application/json',
+          schema: {
+            type: 'object',
+            required: ['rkey'],
+            properties: {
+              rkey: {
+                type: 'string',
+                format: 'record-key',
+                description: 'The Record Key of the rating to delete.',
+              },
+            },
+          },
+        },
+        output: {
+          encoding: 'application/json',
+          schema: {
+            type: 'object',
+            properties: {
+              commit: {
+                type: 'ref',
+                ref: 'lex:com.atproto.repo.defs#commitMeta',
+              },
+            },
+          },
+        },
+        errors: [
+          {
+            name: 'InvalidSwap',
+            description:
+              "Indicates that 'swapCommit' didn't match current repo commit.",
+          },
+        ],
+      },
+    },
+  },
   SocialSoapstoneLocationDefs: {
     lexicon: 1,
     id: 'social.soapstone.location.defs',
@@ -594,13 +707,20 @@ export const schemaDict = {
         properties: {
           base: {
             type: 'union',
-            description: 'Base phrase',
-            refs: ['lex:social.soapstone.message.en.defs#basePhrase'],
+            refs: ['lex:social.soapstone.text.en#basePhrases'],
           },
           fill: {
             type: 'union',
-            description: 'Fill phrase',
-            refs: ['lex:social.soapstone.message.en.defs#fillPhrase'],
+            refs: [
+              'lex:social.soapstone.text.en#characters',
+              'lex:social.soapstone.text.en#objects',
+              'lex:social.soapstone.text.en#techniques',
+              'lex:social.soapstone.text.en#actions',
+              'lex:social.soapstone.text.en#geography',
+              'lex:social.soapstone.text.en#orientation',
+              'lex:social.soapstone.text.en#bodyParts',
+              'lex:social.soapstone.text.en#attributes',
+            ],
           },
         },
       },
@@ -612,24 +732,6 @@ export const schemaDict = {
           type: 'ref',
           ref: 'lex:social.soapstone.message.defs#messagePart',
         },
-      },
-    },
-  },
-  SocialSoapstoneMessageEnDefs: {
-    lexicon: 1,
-    id: 'social.soapstone.message.en.defs',
-    defs: {
-      basePhrase: {
-        type: 'string',
-        description:
-          "Base phrase for the message where the '****' is replaced with a fillPhrase value",
-        enum: ['**** ahead', 'Be wary of ****', 'Try ****', 'Need ****'],
-      },
-      fillPhrase: {
-        type: 'string',
-        description:
-          "Fill phrase for the message where the value replaces the '****' in the basePhrase",
-        enum: ['Enemy', 'Tough enemy', 'Hollow', 'Soldier'],
       },
     },
   },
@@ -657,6 +759,370 @@ export const schemaDict = {
           avatar: {
             type: 'string',
             format: 'uri',
+          },
+        },
+      },
+    },
+  },
+  SocialSoapstoneTextEn: {
+    lexicon: 1,
+    id: 'social.soapstone.text.en',
+    defs: {
+      basePhrases: {
+        type: 'string',
+        description:
+          "Base phrase for the message where the '****' is replaced with a fillPhrase value",
+        enum: [
+          '**** ahead',
+          'Be wary of ****',
+          'Try ****',
+          'Need ****',
+          'Imminent ****...',
+          'Weakness:****',
+          '****',
+          '****?',
+          'Good Luck',
+          'I did it!',
+          'Here!',
+          "I can't take this...",
+          'Praise the Sun!',
+        ],
+      },
+      characters: {
+        type: 'string',
+        description: 'Character types that can be used in the fill phrase',
+        enum: [
+          'Enemy',
+          'Tough enemy',
+          'Hollow',
+          'Soldier',
+          'Knight',
+          'Sniper',
+          'Caster',
+          'Giant',
+          'Skeleton',
+          'Ghost',
+          'Bug',
+          'Poison bug',
+          'Lizard',
+          'Drake',
+          'Flier',
+          'Golem',
+          'Statue',
+          'Monster',
+          'Strange creature',
+          'Demon',
+          'Darkwraith',
+          'Dragon',
+          'Boss',
+        ],
+      },
+      objects: {
+        type: 'string',
+        description: 'Objects that can be used in the fill phrase',
+        enum: [
+          'Bonfire',
+          'Fog wall',
+          'Humanity',
+          'Lever',
+          'Switch',
+          'Key',
+          'Treasure',
+          'Chest',
+          'Weapon',
+          'Shield',
+          'Projectile',
+          'Armour',
+          'Item',
+          'Ring',
+          'Sorcery scroll',
+          'Pyromancy scroll',
+          'Miracle scroll',
+          'Ember',
+          'Trap',
+          'Covenant',
+          'Amazing key',
+          'Amazing treasure',
+          'Amazing chest',
+          'Amazing weapon',
+          'Amazing shield',
+          'Amazing projectile',
+          'Amazing armour',
+          'Amazing item',
+          'Amazing ring',
+          'Amazing sorcery scroll',
+          'Amazing pyromancy scroll',
+          'Amazing miracle scroll',
+          'Amazing ember',
+          'Amazing trap',
+        ],
+      },
+      techniques: {
+        type: 'string',
+        description: 'Techniques that can be used in the fill phrase',
+        enum: [
+          'Close-ranged battle',
+          'Ranged battle',
+          'Eliminating one at a time',
+          'Luring it out',
+          'Beating to a pulp',
+          'Lying in ambush',
+          'Stealth',
+          'Mimicry',
+          'Pincer attack',
+          'Hitting them in one swoop',
+          'Fleeing',
+          'Charging',
+          'Stabbing in the back',
+          'Sweeping attack',
+          'Shield breaking',
+          'Head shots',
+          'Sorcery',
+          'Pyromancy',
+          'Miracles',
+          'Jumping off',
+          'Sliding down',
+          'Dashing through',
+        ],
+      },
+      actions: {
+        type: 'string',
+        description: 'Action types that can be used in the fill phrase',
+        enum: [
+          'Rolling',
+          'Backstepping',
+          'Jumping',
+          'Attacking',
+          'Holding with both hands',
+          'Kicking',
+          'A plunging attack',
+          'Blocking',
+          'Parrying',
+          'Locking-on',
+        ],
+      },
+      geography: {
+        type: 'string',
+        description: 'Geography types that can be used in the fill phrase',
+        enum: [
+          'Path',
+          'Hidden path',
+          'Shortcut',
+          'Detour',
+          'Illusionary wall',
+          'Shortcut',
+          'Dead end',
+          'Swamp',
+          'Lava',
+          'Forest',
+          'Cave',
+          'Labyrinth',
+          'Safe zone',
+          'Danger zone',
+          'Sniper spot',
+          'Bright spot',
+          'Dark spot',
+          'Open area',
+          'Tight spot',
+          'Hidden place',
+          'Exchange',
+          'Gorgeous view',
+          'Fall',
+        ],
+      },
+      orientation: {
+        type: 'string',
+        description: 'Orientation types that can be used in the fill phrase',
+        enum: [
+          'Front',
+          'Back',
+          'Left',
+          'Right',
+          'Up',
+          'Down',
+          'Feet',
+          'Head',
+          'Back',
+        ],
+      },
+      bodyParts: {
+        type: 'string',
+        description: 'Body parts that can be used in the fill phrase',
+        enum: [
+          'Head',
+          'Neck',
+          'Stomach',
+          'Back',
+          'Arm',
+          'Leg',
+          'Heel',
+          'Rear',
+          'Tail',
+          'Wings',
+          'Anywhere',
+        ],
+      },
+      attributes: {
+        type: 'string',
+        description: 'Attributes that can be used in the fill phrase',
+        enum: [
+          'Strike',
+          'Thrust',
+          'Slash',
+          'Magic',
+          'Fire',
+          'Lightning',
+          'Critical hits',
+          'Bleeding',
+          'Poison',
+          'Strong poison',
+          'Curses',
+          'Divine',
+          'Occult',
+          'Crystal',
+        ],
+      },
+    },
+  },
+  SocialSoapstoneTextGetBasePhrases: {
+    lexicon: 1,
+    id: 'social.soapstone.text.getBasePhrases',
+    defs: {
+      main: {
+        type: 'query',
+        description:
+          'Gets all available base phrases for message construction.',
+        parameters: {
+          type: 'params',
+          properties: {
+            language: {
+              type: 'string',
+              description:
+                "Language code for the base phrases. Defaults to 'en' if not specified.",
+              default: 'en',
+            },
+          },
+        },
+        output: {
+          encoding: 'application/json',
+          schema: {
+            type: 'object',
+            required: ['basePhrases'],
+            properties: {
+              basePhrases: {
+                type: 'array',
+                description: 'Array of all available base phrases',
+                items: {
+                  type: 'union',
+                  refs: ['lex:social.soapstone.text.en#basePhrases'],
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+  SocialSoapstoneTextGetFillPhrases: {
+    lexicon: 1,
+    id: 'social.soapstone.text.getFillPhrases',
+    defs: {
+      main: {
+        type: 'query',
+        description:
+          'Gets all available fill phrases organized by category for message construction.',
+        parameters: {
+          type: 'params',
+          properties: {
+            language: {
+              type: 'string',
+              description:
+                "Language code for the fill phrases. Defaults to 'en' if not specified.",
+              default: 'en',
+            },
+          },
+        },
+        output: {
+          encoding: 'application/json',
+          schema: {
+            type: 'object',
+            required: [
+              'characters',
+              'objects',
+              'techniques',
+              'actions',
+              'geography',
+              'orientation',
+              'bodyParts',
+              'attributes',
+            ],
+            properties: {
+              characters: {
+                type: 'array',
+                description: 'Character types that can be used in fill phrases',
+                items: {
+                  type: 'union',
+                  refs: ['lex:social.soapstone.text.en#characters'],
+                },
+              },
+              objects: {
+                type: 'array',
+                description: 'Objects that can be used in fill phrases',
+                items: {
+                  type: 'union',
+                  refs: ['lex:social.soapstone.text.en#objects'],
+                },
+              },
+              techniques: {
+                type: 'array',
+                description: 'Techniques that can be used in fill phrases',
+                items: {
+                  type: 'union',
+                  refs: ['lex:social.soapstone.text.en#techniques'],
+                },
+              },
+              actions: {
+                type: 'array',
+                description: 'Actions that can be used in fill phrases',
+                items: {
+                  type: 'union',
+                  refs: ['lex:social.soapstone.text.en#actions'],
+                },
+              },
+              geography: {
+                type: 'array',
+                description: 'Geography types that can be used in fill phrases',
+                items: {
+                  type: 'union',
+                  refs: ['lex:social.soapstone.text.en#geography'],
+                },
+              },
+              orientation: {
+                type: 'array',
+                description:
+                  'Orientation types that can be used in fill phrases',
+                items: {
+                  type: 'union',
+                  refs: ['lex:social.soapstone.text.en#orientation'],
+                },
+              },
+              bodyParts: {
+                type: 'array',
+                description: 'Body parts that can be used in fill phrases',
+                items: {
+                  type: 'union',
+                  refs: ['lex:social.soapstone.text.en#bodyParts'],
+                },
+              },
+              attributes: {
+                type: 'array',
+                description: 'Attributes that can be used in fill phrases',
+                items: {
+                  type: 'union',
+                  refs: ['lex:social.soapstone.text.en#attributes'],
+                },
+              },
+            },
           },
         },
       },
@@ -731,9 +1197,13 @@ export const ids = {
   SocialSoapstoneFeedGetPosts: 'social.soapstone.feed.getPosts',
   SocialSoapstoneFeedDefsCreatePost: 'social.soapstone.feed.defs.createPost',
   SocialSoapstoneFeedDeletePost: 'social.soapstone.feed.deletePost',
+  SocialSoapstoneFeedCreateRating: 'social.soapstone.feed.createRating',
+  SocialSoapstoneFeedDeleteRating: 'social.soapstone.feed.deleteRating',
   SocialSoapstoneLocationDefs: 'social.soapstone.location.defs',
   SocialSoapstoneMessageDefs: 'social.soapstone.message.defs',
-  SocialSoapstoneMessageEnDefs: 'social.soapstone.message.en.defs',
   SocialSoapstoneActorDefs: 'social.soapstone.actor.defs',
+  SocialSoapstoneTextEn: 'social.soapstone.text.en',
+  SocialSoapstoneTextGetBasePhrases: 'social.soapstone.text.getBasePhrases',
+  SocialSoapstoneTextGetFillPhrases: 'social.soapstone.text.getFillPhrases',
   XyzStatusphereStatus: 'xyz.statusphere.status',
 } as const

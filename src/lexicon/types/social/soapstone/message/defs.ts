@@ -9,7 +9,7 @@ import {
   is$typed as _is$typed,
   type OmitKey,
 } from '../../../../util'
-import type * as SocialSoapstoneMessageEnDefs from './en/defs.js'
+import type * as SocialSoapstoneTextEn from '../text/en.js'
 
 const is$typed = _is$typed,
   validate = _validate
@@ -18,8 +18,17 @@ const id = 'social.soapstone.message.defs'
 /** A message part consisting of a base phrase and a fill phrase. */
 export interface MessagePart {
   $type?: 'social.soapstone.message.defs#messagePart'
-  base: $Typed<SocialSoapstoneMessageEnDefs.BasePhrase> | { $type: string }
-  fill: $Typed<SocialSoapstoneMessageEnDefs.FillPhrase> | { $type: string }
+  base: $Typed<SocialSoapstoneTextEn.BasePhrases> | { $type: string }
+  fill:
+    | $Typed<SocialSoapstoneTextEn.Characters>
+    | $Typed<SocialSoapstoneTextEn.Objects>
+    | $Typed<SocialSoapstoneTextEn.Techniques>
+    | $Typed<SocialSoapstoneTextEn.Actions>
+    | $Typed<SocialSoapstoneTextEn.Geography>
+    | $Typed<SocialSoapstoneTextEn.Orientation>
+    | $Typed<SocialSoapstoneTextEn.BodyParts>
+    | $Typed<SocialSoapstoneTextEn.Attributes>
+    | { $type: string }
 }
 
 const hashMessagePart = 'messagePart'

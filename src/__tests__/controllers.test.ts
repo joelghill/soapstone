@@ -58,7 +58,7 @@ describe("SoapStoneLexiconController", () => {
     // Mock the SessionManager as it is required by the Agent constructor
     mockAgent = new Agent({} as SessionManager);
 
-    controller = new SoapStoneLexiconController(mockDb, mockSt, mockAgent);
+    controller = new SoapStoneLexiconController(mockDb, mockSt);
   });
 
   afterEach(() => {
@@ -156,7 +156,7 @@ describe("SoapStoneLexiconController", () => {
         await mockPutRecord,
       );
 
-      const result = await controller.createPost(message, location);
+      const result = await controller.createPost(message, location, mockAgent);
 
       expect(result).toEqual({
         uri: "at://did:test/posts/123",

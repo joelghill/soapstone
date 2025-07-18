@@ -8,14 +8,21 @@
       "required": ["base", "fill"],
       "properties": {
         "base": {
-          "type": "ref",
-          "description": "Base phrase",
-          "ref": "#allBasePhrases"
+          "type": "union",
+          "refs": ["social.soapstone.text.en#basePhrases"]
         },
         "fill": {
-          "type": "ref",
-          "description": "Fill phrase",
-          "ref": "#allFillPhrases"
+          "type": "union",
+          "refs": [
+            "social.soapstone.text.en#characters",
+            "social.soapstone.text.en#objects",
+            "social.soapstone.text.en#techniques",
+            "social.soapstone.text.en#actions",
+            "social.soapstone.text.en#geography",
+            "social.soapstone.text.en#orientation",
+            "social.soapstone.text.en#bodyParts",
+            "social.soapstone.text.en#attributes"
+          ]
         }
       }
     },
@@ -26,23 +33,6 @@
         "type": "ref",
         "ref": "#messagePart"
       }
-    },
-    "allBasePhrases": {
-      "type": "union",
-      "refs": ["social.soapstone.text.en#basePhrases"]
-    },
-    "allFillPhrases": {
-      "type": "union",
-      "refs": [
-        "social.soapstone.text.en#characters",
-        "social.soapstone.text.en#objects",
-        "social.soapstone.text.en#techniques",
-        "social.soapstone.text.en#actions",
-        "social.soapstone.text.en#geography",
-        "social.soapstone.text.en#orientation",
-        "social.soapstone.text.en#bodyParts",
-        "social.soapstone.text.en#attributes"
-      ]
     }
   }
 }

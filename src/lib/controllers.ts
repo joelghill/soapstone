@@ -42,12 +42,10 @@ export interface LexiconController {
 export class SoapStoneLexiconController implements LexiconController {
   private db: Database;
   private st: postgis.KnexPostgis;
-  private agent?: Agent;
 
-  constructor(db: Database, st: postgis.KnexPostgis, agent?: Agent) {
+  constructor(db: Database, st: postgis.KnexPostgis) {
     this.db = db;
     this.st = st;
-    this.agent = agent;
   }
 
   /**

@@ -1,0 +1,37 @@
+{
+  "lexicon": 1,
+  "id": "social.soapstone.text.getBasePhrases",
+  "defs": {
+    "main": {
+      "type": "query",
+      "description": "Gets all available base phrases for message construction.",
+      "parameters": {
+        "type": "params",
+        "properties": {
+          "language": {
+            "type": "string",
+            "description": "Language code for the base phrases. Defaults to 'en' if not specified.",
+            "default": "en"
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["basePhrases"],
+          "properties": {
+            "basePhrases": {
+              "type": "array",
+              "description": "Array of all available base phrases",
+              "items": {
+                "type": "union",
+                "refs": ["social.soapstone.text.en#basePhrases"]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

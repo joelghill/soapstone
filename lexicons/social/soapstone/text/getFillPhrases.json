@@ -1,0 +1,102 @@
+{
+  "lexicon": 1,
+  "id": "social.soapstone.text.getFillPhrases",
+  "defs": {
+    "main": {
+      "type": "query",
+      "description": "Gets all available fill phrases organized by category for message construction.",
+      "parameters": {
+        "type": "params",
+        "properties": {
+          "language": {
+            "type": "string",
+            "description": "Language code for the fill phrases. Defaults to 'en' if not specified.",
+            "default": "en"
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": [
+            "characters",
+            "objects",
+            "techniques",
+            "actions",
+            "geography",
+            "orientation",
+            "bodyParts",
+            "attributes"
+          ],
+          "properties": {
+            "characters": {
+              "type": "array",
+              "description": "Character types that can be used in fill phrases",
+              "items": {
+                "type": "union",
+                "refs": ["social.soapstone.text.en#characters"]
+              }
+            },
+            "objects": {
+              "type": "array",
+              "description": "Objects that can be used in fill phrases",
+              "items": {
+                "type": "union",
+                "refs": ["social.soapstone.text.en#objects"]
+              }
+            },
+            "techniques": {
+              "type": "array",
+              "description": "Techniques that can be used in fill phrases",
+              "items": {
+                "type": "union",
+                "refs": ["social.soapstone.text.en#techniques"]
+              }
+            },
+            "actions": {
+              "type": "array",
+              "description": "Actions that can be used in fill phrases",
+              "items": {
+                "type": "union",
+                "refs": ["social.soapstone.text.en#actions"]
+              }
+            },
+            "geography": {
+              "type": "array",
+              "description": "Geography types that can be used in fill phrases",
+              "items": {
+                "type": "union",
+                "refs": ["social.soapstone.text.en#geography"]
+              }
+            },
+            "orientation": {
+              "type": "array",
+              "description": "Orientation types that can be used in fill phrases",
+              "items": {
+                "type": "union",
+                "refs": ["social.soapstone.text.en#orientation"]
+              }
+            },
+            "bodyParts": {
+              "type": "array",
+              "description": "Body parts that can be used in fill phrases",
+              "items": {
+                "type": "union",
+                "refs": ["social.soapstone.text.en#bodyParts"]
+              }
+            },
+            "attributes": {
+              "type": "array",
+              "description": "Attributes that can be used in fill phrases",
+              "items": {
+                "type": "union",
+                "refs": ["social.soapstone.text.en#attributes"]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

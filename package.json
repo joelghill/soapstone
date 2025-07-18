@@ -11,7 +11,7 @@
     "dev": "tsx watch --clear-screen=false src/index.ts | pino-pretty",
     "build": "tsup",
     "start": "node dist/index.js",
-    "lexgen": "lex gen-server ./src/lexicon $(find ./lexicons -type f -iname \"*.json\" -printf \"%d %p\n\"|sort -rn|sed -e 's/^[0-9]\\+\\s//;')",
+    "lexgen": "lex gen-server ./src/lexicon $(find ./lexicons -type f -iname \"*.json\")",
     "clean": "rimraf dist coverage",
     "migrate": "knex migrate:latest",
     "migrate:rollback": "knex migrate:rollback",
@@ -27,31 +27,31 @@
     "docker:restart": "docker-compose restart app"
   },
   "dependencies": {
-    "@atproto/api": "^0.15.16",
-    "@atproto/common": "^0.4.1",
+    "@atproto/api": "^0.15.23",
+    "@atproto/common": "^0.4.11",
     "@atproto/identity": "^0.4.8",
-    "@atproto/lexicon": "^0.4.2",
-    "@atproto/oauth-client-node": "^0.2.24",
-    "@atproto/sync": "^0.1.26",
+    "@atproto/lexicon": "^0.4.11",
+    "@atproto/oauth-client-node": "^0.3.2",
+    "@atproto/sync": "^0.1.28",
     "@atproto/syntax": "^0.4.0",
     "@atproto/xrpc-server": "^0.8.0",
-    "dotenv": "^16.5.0",
+    "dotenv": "^17.2.0",
     "envalid": "^8.0.0",
     "express": "^5.1.0",
     "iron-session": "^8.0.4",
     "knex": "^3.1.0",
     "knex-postgis": "^0.14.3",
     "multiformats": "^13.3.7",
-    "pg": "^8.11.3",
+    "pg": "^8.16.3",
     "pino": "^9.7.0",
     "uhtml": "^4.7.1"
   },
   "devDependencies": {
-    "@atproto/lex-cli": "^0.8.2",
+    "@atproto/lex-cli": "^0.8.3",
     "@types/express": "^5.0.3",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.0.3",
-    "@types/pg": "^8.10.9",
+    "@types/pg": "^8.15.4",
     "@types/supertest": "^6.0.3",
     "jest": "^30.0.2",
     "knex-mock-client": "^3.0.2",
@@ -62,7 +62,7 @@
     "ts-node": "^10.9.2",
     "tsup": "^8.5.0",
     "tsx": "^4.20.3",
-    "typescript": "^5.4.4"
+    "typescript": "^5.8.3"
   },
   "tsup": {
     "entry": [

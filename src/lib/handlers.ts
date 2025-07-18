@@ -87,7 +87,7 @@ export class SoapStoneLexiconHandler {
           altitude,
           radius ? parseFloat(radius as string) : undefined,
         );
-        return res.status(200).json(response);
+        return res.status(200).json({ posts: response });
       }
     } catch (err) {
       this.logger.error({ err }, "Error handling catchall request");

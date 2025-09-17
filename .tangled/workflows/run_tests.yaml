@@ -35,5 +35,8 @@ environment:
   COOKIE_SECRET: development-secret-key-change-in-production
 
 steps:
+  - name: "Install Dependencies"
+    command: "yarn install"
+
   - name: "Run Unit Tests"
     command: "yarn run jest --coverage"

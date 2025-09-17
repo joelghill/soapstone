@@ -28,6 +28,13 @@ npm install -g corepack
 yarn install
 ```
 
+## Running Unit Tests
+
+Tests can be ran with coverage:
+```
+yarn run jest --coverage
+```
+
 ## Running with Docker (Recommended)
 
 The easiest way to get started is using Docker Compose, which includes PostgreSQL with PostGIS:

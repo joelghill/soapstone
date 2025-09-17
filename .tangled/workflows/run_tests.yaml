@@ -1,0 +1,39 @@
+when:
+  - event: ["push", "manual"]
+    branch: ["main"]
+  - event: ["pull_request"]
+    branch: ["main"]
+
+engine: "nixery"
+
+# using the default values
+clone:
+  skip: false
+  depth: 1
+  submodules: false
+
+dependencies:
+  # nixpkgs
+  nixpkgs:
+    - nodejs
+    - yarn-berry
+
+environment:
+  NODE_ENV: "development"
+  # Environment Configuration
+  PORT: "8080"            # The port your server will listen on
+  HOST: "localhost"       # Hostname for the server
+  PUBLIC_URL: ""          # Set when deployed publicly, e.g. "https://mysite.com". Informs OAuth client id.
+  DB_PATH: ":memory:"     # The SQLite database path. Leave as ":memory:" to use a temporary in-memory database.
+
+  # PostgreSQL Database Configuration
+  DB_HOST: 127.0.0.1
+  DB_PORT: 5432
+  DB_NAME: soapstone
+  DB_USER: soapstone
+  DB_PASSWORD: changeme
+  COOKIE_SECRET: development-secret-key-change-in-production
+
+steps:
+  - name: "Run Unit Tests"
+    command: "yarn run jest --coverage"

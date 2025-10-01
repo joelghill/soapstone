@@ -5,8 +5,8 @@
   "client_uri": "https://soapstone.social/client-meta.json",
   "dpop_bound_access_tokens": true,
   "grant_types": ["authorization_code", "refresh_token"],
-  "redirect_uris_OLD": ["social.soapstone://oauth"],
-  "redirect_uris": ["social.soapstone://oauth"],
+  "redirect_uris_OLD": ["social.soapstone:/oauth"],
+  "redirect_uris": ["social.soapstone:/oauth"],
   "response_types": ["code"],
   "scope": "atproto transition:generic transition:chat.bsky",
   "token_endpoint_auth_method": "none"

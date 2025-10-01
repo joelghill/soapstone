@@ -2,7 +2,7 @@
   "client_id": "https://soapstone.social/client-meta.json",
   "application_type": "native",
   "client_name": "OAuth for Bluesky",
-  "client_uri": "https://client.soapstone.social/client-meta.json",
+  "client_uri": "https://soapstone.social/client-meta.json",
   "dpop_bound_access_tokens": true,
   "grant_types": ["authorization_code", "refresh_token"],
   "redirect_uris_OLD": ["client.soapstone.social:/oauth"],

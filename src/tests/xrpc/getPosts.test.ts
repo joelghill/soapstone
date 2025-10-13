@@ -1,19 +1,19 @@
 import { SoapStoneLexiconHandler } from "../../lib/handlers";
-import { LexiconController } from "../../lib/controllers";
+import { ISoapStoneLexiconController } from "../../lib/controllers";
 import { OAuthClient } from "@atproto/oauth-client-node";
 import pino from "pino";
 import express from "express";
-import { parseGeoURI } from "../../lib/geo";
+import { parseGeoURI } from "../../lib/utils/geo";
 import { PostView } from "../../lexicon/types/social/soapstone/feed/defs";
 
 // Mock the dependencies
-jest.mock("../../lib/geo");
+jest.mock("../../lib/utils/geo");
 jest.mock("@atproto/oauth-client-node");
 jest.mock("pino");
 
 describe("SoapStoneLexiconHandler - getPosts", () => {
   let handler: SoapStoneLexiconHandler;
-  let mockController: jest.Mocked<LexiconController>;
+  let mockController: jest.Mocked<ISoapStoneLexiconController>;
   let mockAuth: jest.Mocked<OAuthClient>;
   let mockLogger: jest.Mocked<pino.Logger>;
   let mockReq: Partial<express.Request>;
@@ -46,7 +46,7 @@ describe("SoapStoneLexiconHandler - getPosts", () => {
     mockParseGeoURI = parseGeoURI as jest.MockedFunction<typeof parseGeoURI>;
 
     // Create handler instance
-    handler = new SoapStoneLexiconHandler(mockController, mockAuth, mockLogger);
+    handler = new SoapStoneLexiconHandler(mockController, mockLogger);
 
     // Mock Express request and response
     mockReq = {
@@ -106,11 +106,8 @@ describe("SoapStoneLexiconHandler - getPosts", () => {
       );
 
       // Assert
-      expect(mockParseGeoURI).toHaveBeenCalledWith("geo:37.7749,-122.4194");
       expect(mockController.getPostsByLocation).toHaveBeenCalledWith(
-        37.7749,
-        -122.4194,
-        undefined,
+        "geo:37.7749,-122.4194",
         undefined,
       );
       expect(mockRes.status).toHaveBeenCalledWith(200);
@@ -148,11 +145,8 @@ describe("SoapStoneLexiconHandler - getPosts", () => {
       );
 
       // Assert
-      expect(mockParseGeoURI).toHaveBeenCalledWith("geo:37.7749,-122.4194");
       expect(mockController.getPostsByLocation).toHaveBeenCalledWith(
-        37.7749,
-        -122.4194,
-        undefined,
+        "geo:37.7749,-122.4194",
         500,
       );
       expect(mockRes.status).toHaveBeenCalledWith(200);
@@ -182,13 +176,8 @@ describe("SoapStoneLexiconHandler - getPosts", () => {
       );
 
       // Assert
-      expect(mockParseGeoURI).toHaveBeenCalledWith(
-        "geo:37.7749,-122.4194;u=100.5",
-      );
       expect(mockController.getPostsByLocation).toHaveBeenCalledWith(
-        37.7749,
-        -122.4194,
-        100.5,
+        "geo:37.7749,-122.4194;u=100.5",
         1000,
       );
       expect(mockRes.status).toHaveBeenCalledWith(200);
@@ -214,9 +203,7 @@ describe("SoapStoneLexiconHandler - getPosts", () => {
 
       // Assert
       expect(mockController.getPostsByLocation).toHaveBeenCalledWith(
-        0,
-        0,
-        undefined,
+        "geo:0,0",
         undefined,
       );
       expect(mockRes.status).toHaveBeenCalledWith(200);
@@ -242,9 +229,7 @@ describe("SoapStoneLexiconHandler - getPosts", () => {
 
       // Assert
       expect(mockController.getPostsByLocation).toHaveBeenCalledWith(
-        37.7749,
-        -122.4194,
-        undefined,
+        "geo:37.7749,-122.4194",
         250.5,
       );
       expect(mockRes.status).toHaveBeenCalledWith(200);
@@ -270,9 +255,7 @@ describe("SoapStoneLexiconHandler - getPosts", () => {
 
       // Assert
       expect(mockController.getPostsByLocation).toHaveBeenCalledWith(
-        -33.8688,
-        151.2093,
-        undefined,
+        "geo:-33.8688,151.2093",
         undefined,
       );
       expect(mockRes.status).toHaveBeenCalledWith(200);
@@ -298,9 +281,7 @@ describe("SoapStoneLexiconHandler - getPosts", () => {
 
       // Assert
       expect(mockController.getPostsByLocation).toHaveBeenCalledWith(
-        37.7749,
-        -122.4194,
-        undefined,
+        "geo:37.7749,-122.4194",
         NaN,
       );
       expect(mockRes.status).toHaveBeenCalledWith(200);
@@ -310,9 +291,10 @@ describe("SoapStoneLexiconHandler - getPosts", () => {
     it("should handle parseGeoURI throwing an error", async () => {
       // Arrange
       mockReq.query = { location: "invalid-geo-uri" };
-      mockParseGeoURI.mockImplementation(() => {
-        throw new Error("Invalid Geo URI");
-      });
+      // Mock controller to throw error when called with invalid geo URI
+      mockController.getPostsByLocation.mockRejectedValue(
+        new Error("Invalid Geo URI"),
+      );
 
       // Act
       await handler.handleCatchall(
@@ -322,7 +304,10 @@ describe("SoapStoneLexiconHandler - getPosts", () => {
       );
 
       // Assert
-      expect(mockParseGeoURI).toHaveBeenCalledWith("invalid-geo-uri");
+      expect(mockController.getPostsByLocation).toHaveBeenCalledWith(
+        "invalid-geo-uri",
+        undefined,
+      );
       expect(mockLogger.error).toHaveBeenCalledWith(
         { err: expect.any(Error) },
         "Error handling catchall request",
@@ -352,9 +337,7 @@ describe("SoapStoneLexiconHandler - getPosts", () => {
 
       // Assert
       expect(mockController.getPostsByLocation).toHaveBeenCalledWith(
-        37.7749,
-        -122.4194,
-        undefined,
+        "geo:37.7749,-122.4194",
         undefined,
       );
       expect(mockLogger.error).toHaveBeenCalledWith(
@@ -368,9 +351,9 @@ describe("SoapStoneLexiconHandler - getPosts", () => {
     it("should handle missing location parameter", async () => {
       // Arrange
       mockReq.query = {}; // No location parameter
-      mockParseGeoURI.mockImplementation(() => {
-        throw new Error("Invalid Geo URI");
-      });
+      mockController.getPostsByLocation.mockRejectedValue(
+        new Error("Location is required"),
+      );
 
       // Act
       await handler.handleCatchall(
@@ -380,7 +363,10 @@ describe("SoapStoneLexiconHandler - getPosts", () => {
       );
 
       // Assert
-      expect(mockParseGeoURI).toHaveBeenCalledWith(undefined);
+      expect(mockController.getPostsByLocation).toHaveBeenCalledWith(
+        undefined,
+        undefined,
+      );
       expect(mockLogger.error).toHaveBeenCalledWith(
         { err: expect.any(Error) },
         "Error handling catchall request",
@@ -408,9 +394,7 @@ describe("SoapStoneLexiconHandler - getPosts", () => {
 
       // Assert
       expect(mockController.getPostsByLocation).toHaveBeenCalledWith(
-        37.7749,
-        -122.4194,
-        undefined,
+        "geo:37.7749,-122.4194",
         0,
       );
       expect(mockRes.status).toHaveBeenCalledWith(200);
@@ -505,9 +489,7 @@ describe("SoapStoneLexiconHandler - getPosts", () => {
 
       // Assert
       expect(mockController.getPostsByLocation).toHaveBeenCalledWith(
-        37.7749,
-        -122.4194,
-        undefined,
+        "geo:37.7749,-122.4194",
         1000,
       );
       expect(mockRes.status).toHaveBeenCalledWith(200);
@@ -573,9 +555,7 @@ describe("SoapStoneLexiconHandler - getPosts", () => {
 
       // Assert
       expect(mockController.getPostsByLocation).toHaveBeenCalledWith(
-        37.774925,
-        -122.419414,
-        undefined,
+        "geo:37.774925,-122.419414",
         undefined,
       );
       expect(mockRes.status).toHaveBeenCalledWith(200);
@@ -600,9 +580,7 @@ describe("SoapStoneLexiconHandler - getPosts", () => {
 
       // Assert
       expect(mockController.getPostsByLocation).toHaveBeenCalledWith(
-        90,
-        -180,
-        undefined,
+        "geo:90,-180",
         undefined,
       );
       expect(mockRes.status).toHaveBeenCalledWith(200);

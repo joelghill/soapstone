@@ -1,4 +1,4 @@
-import { createDb, migrateToLatest, closeDb } from "#/lib/db";
+import { createDb, migrateToLatest, closeDb } from "#/lib/db/postgres";
 import knex from "knex";
 import postgis from "knex-postgis";
 

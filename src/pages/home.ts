@@ -1,4 +1,4 @@
-import type { Status } from "#/lib/db";
+import type { Status } from "#/lib/db/postgres";
 import { html } from "../lib/view";
 import { shell } from "./shell";
 

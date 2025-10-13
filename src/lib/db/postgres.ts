@@ -1,6 +1,12 @@
 import knex, { Knex } from "knex";
 import { env } from "#/lib/env";
-import { Status, AuthSession, AuthState, Post, Rating } from "#/lib/entities";
+import {
+  Status,
+  AuthSession,
+  AuthState,
+  Post,
+  Rating,
+} from "#/lib/repositories/entities";
 
 // Database instance
 let dbInstance: Database | null = null;

@@ -2,14 +2,15 @@ module.exports = {
   preset: "ts-jest",
   testEnvironment: "node",
   roots: ["<rootDir>/src"],
-  testMatch: ["**/__tests__/**/*.test.ts"],
+  testMatch: ["**/tests/**/*.test.ts"],
   collectCoverageFrom: [
     "src/**/*.ts",
     "!src/**/__tests__/**",
+    "!src/tests/**",
     "!src/lexicon/**",
     "!src/index.ts",
   ],
-  setupFilesAfterEnv: ["<rootDir>/src/__tests__/setup.ts"],
+  setupFilesAfterEnv: ["<rootDir>/src/tests/setup.ts"],
   moduleNameMapper: {
     "^#/(.*)$": "<rootDir>/src/$1",
   },

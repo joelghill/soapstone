@@ -1,5 +1,5 @@
 import { SoapStoneLexiconHandler } from "../../lib/handlers";
-import { LexiconController } from "../../lib/controllers";
+import { ISoapStoneLexiconController } from "../../lib/controllers";
 import { OAuthClient } from "@atproto/oauth-client-node";
 import pino from "pino";
 import express from "express";
@@ -11,14 +11,14 @@ import {
 } from "../../lexicon/types/social/soapstone/message/defs";
 import { Location } from "../../lexicon/types/social/soapstone/location/defs";
 import { CreatePostResponse } from "../../lexicon/types/social/soapstone/feed/defs";
-import { parseGeoURI } from "../../lib/geo";
+import { parseGeoURI } from "../../lib/utils/geo";
 
 // Mock the dependencies
 jest.mock("iron-session");
 jest.mock("@atproto/oauth-client-node");
 jest.mock("@atproto/api");
 jest.mock("pino");
-jest.mock("../../lib/geo");
+jest.mock("../../lib/utils/geo");
 
 const mockGetIronSession = getIronSession as jest.MockedFunction<
   typeof getIronSession
@@ -28,7 +28,7 @@ const mockParseGeoURI = parseGeoURI as jest.MockedFunction<typeof parseGeoURI>;
 
 describe("SoapStoneLexiconHandler - createPost", () => {
   let handler: SoapStoneLexiconHandler;
-  let mockController: jest.Mocked<LexiconController>;
+  let mockController: jest.Mocked<ISoapStoneLexiconController>;
   let mockAuth: jest.Mocked<OAuthClient>;
   let mockLogger: jest.Mocked<pino.Logger>;
   let mockReq: Partial<express.Request>;
@@ -103,7 +103,7 @@ describe("SoapStoneLexiconHandler - createPost", () => {
     };
 
     // Create handler instance
-    handler = new SoapStoneLexiconHandler(mockController, mockAuth, mockLogger);
+    handler = new SoapStoneLexiconHandler(mockController, mockLogger);
 
     // Mock Express request and response
     mockReq = {
@@ -154,11 +154,10 @@ describe("SoapStoneLexiconHandler - createPost", () => {
           password: expect.any(String),
         }),
       );
-      expect(mockAuth.restore).toHaveBeenCalledWith("did:test:user");
       expect(mockController.createPost).toHaveBeenCalledWith(
+        "did:test:user",
         sampleMessage,
         sampleLocation,
-        mockAgent,
       );
       expect(mockRes.status).toHaveBeenCalledWith(201);
       expect(mockRes.json).toHaveBeenCalledWith(sampleCreatePostResponse);
@@ -192,8 +191,7 @@ describe("SoapStoneLexiconHandler - createPost", () => {
       );
 
       expect(mockGetIronSession).toHaveBeenCalled();
-      expect(mockAuth.restore).toHaveBeenCalledWith("did:test:user");
-      expect(mockController.createPost).not.toHaveBeenCalled();
+      expect(mockController.createPost).toHaveBeenCalled();
       expect(mockRes.status).toHaveBeenCalledWith(401);
       expect(mockRes.send).toHaveBeenCalledWith("Unauthorized");
       expect(mockNext).not.toHaveBeenCalled();

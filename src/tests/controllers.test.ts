@@ -2,7 +2,9 @@ import { mocked } from "jest-mock";
 import knex from "knex";
 import { Agent } from "@atproto/api";
 import { SoapStoneLexiconController } from "../lib/controllers";
-import { Database } from "../lib/db";
+import { Database } from "../lib/db/postgres";
+import { PostRepository } from "../lib/repositories/post_repo";
+import { AtProtoRepository } from "../lib/repositories/atproto_repo";
 import { MockClient, Tracker, createTracker } from "knex-mock-client";
 import postgis, { KnexPostgis } from "knex-postgis";
 
@@ -29,6 +31,8 @@ describe("SoapStoneLexiconController", () => {
   let mockSt: any;
   let mockAgent: Agent;
   let tracker: Tracker;
+  let mockPostRepository: jest.Mocked<PostRepository>;
+  let mockAtProtoRepository: jest.Mocked<AtProtoRepository>;
 
   beforeEach(() => {
     // Clear previous mocks
@@ -54,11 +58,29 @@ describe("SoapStoneLexiconController", () => {
     tracker = createTracker(mockDb);
     mockSt = postgis(mockDb) as KnexPostgis;
 
+    // Create mock repositories
+    mockPostRepository = {
+      getPostsByLocation: jest.fn(),
+      createPost: jest.fn(),
+      getPostByUri: jest.fn(),
+      createRating: jest.fn(),
+      deleteRating: jest.fn(),
+      deletePost: jest.fn(),
+    } as any;
+
+    mockAtProtoRepository = {
+      createPostRecord: jest.fn(),
+      deleteRecord: jest.fn(),
+    } as any;
+
     // Construct the controller with mocked dependencies
     // Mock the SessionManager as it is required by the Agent constructor
     mockAgent = new Agent({} as SessionManager);
 
-    controller = new SoapStoneLexiconController(mockDb, mockSt);
+    controller = new SoapStoneLexiconController(
+      mockPostRepository,
+      mockAtProtoRepository,
+    );
   });
 
   afterEach(() => {
@@ -69,46 +91,34 @@ describe("SoapStoneLexiconController", () => {
 
   describe("getPostsByLocation", () => {
     it("should return posts within the specified location and radius", async () => {
-      // Mock database responses
-      const mockPosts = [
+      // Mock repository response
+      const mockPostViews = [
         {
           uri: "at://did:test/posts/1",
-          author_did: "did:test:user1",
+          author_uri: "did:test:user1",
           text: "Test post 1",
-          location_text: "POINT(-122.4194 37.7749)",
-          created_at: new Date("2023-01-01T00:00:00Z"),
-          indexed_at: new Date("2023-01-01T00:00:00Z"),
+          location: "POINT(-122.4194 37.7749)",
+          positiveRatingsCount: 5,
+          negativeRatingsCount: 1,
+          createdAt: "2023-01-01T00:00:00.000Z",
+          indexedAt: "2023-01-01T00:00:00.000Z",
         },
         {
           uri: "at://did:test/posts/2",
-          author_did: "did:test:user2",
+          author_uri: "did:test:user2",
           text: "Test post 2",
-          location_text: "POINT(-122.4195 37.7750)",
-          created_at: new Date("2023-01-01T01:00:00Z"),
-          indexed_at: new Date("2023-01-01T01:00:00Z"),
+          location: "POINT(-122.4195 37.7750)",
+          positiveRatingsCount: 3,
+          negativeRatingsCount: 2,
+          createdAt: "2023-01-01T01:00:00.000Z",
+          indexedAt: "2023-01-01T01:00:00.000Z",
         },
       ];
 
-      const mockRatings = [
-        {
-          post_uri: "at://did:test/posts/1",
-          positive_count: "5",
-          negative_count: "1",
-        },
-        {
-          post_uri: "at://did:test/posts/2",
-          positive_count: "3",
-          negative_count: "2",
-        },
-      ];
-
-      tracker.on.select(/select "post".*/).response(mockPosts);
-      tracker.on.select(/select "post_uri".*/).response(mockRatings);
+      mockPostRepository.getPostsByLocation.mockResolvedValue(mockPostViews);
 
       const result = await controller.getPostsByLocation(
-        37.7749,
-        -122.4194,
-        undefined,
+        "geo:37.7749,-122.4194",
         1000,
       );
 
@@ -144,19 +154,22 @@ describe("SoapStoneLexiconController", () => {
       ];
       const location: Location = { uri: "geo:37.7749,-122.4194" };
 
-      const mockPutRecord: ComAtprotoRepoPutRecord.Response = {
-        success: true,
-        headers: {},
-        data: {
-          uri: "at://did:test/posts/123",
-          cid: "bafyreicid123",
-        },
+      // Mock repository responses
+      const mockAtprotoResult = {
+        uri: "at://did:test/posts/123",
+        cid: "bafyreicid123",
       };
-      (mockAgent.com.atproto.repo.putRecord as any).mockResolvedValue(
-        await mockPutRecord,
-      );
 
-      const result = await controller.createPost(message, location, mockAgent);
+      mockAtProtoRepository.createPostRecord.mockResolvedValue(
+        mockAtprotoResult,
+      );
+      mockPostRepository.createPost.mockResolvedValue();
+
+      const result = await controller.createPost(
+        "did:test:user",
+        message,
+        location,
+      );
 
       expect(result).toEqual({
         uri: "at://did:test/posts/123",
@@ -164,17 +177,17 @@ describe("SoapStoneLexiconController", () => {
         validationStatus: "valid",
       });
 
-      expect(mockAgent.com.atproto.repo.putRecord).toHaveBeenCalledWith({
-        repo: "did:test:user",
-        collection: "social.soapstone.feed.post",
-        rkey: expect.any(String),
-        record: expect.objectContaining({
-          $type: "social.soapstone.feed.post",
-          message: message,
-          location: location,
-          createdAt: expect.any(String),
-        }),
-        validate: false,
+      expect(mockAtProtoRepository.createPostRecord).toHaveBeenCalledWith(
+        "did:test:user",
+        message,
+        location,
+      );
+      expect(mockPostRepository.createPost).toHaveBeenCalledWith({
+        uri: "at://did:test/posts/123",
+        authorDid: "did:test:user",
+        message,
+        geoUri: "geo:37.7749,-122.4194",
+        createdAt: expect.any(String),
       });
     });
 

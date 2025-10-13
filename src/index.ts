@@ -5,12 +5,13 @@ import { pino } from "pino";
 import type { OAuthClient } from "@atproto/oauth-client-node";
 import { Firehose } from "@atproto/sync";
 
-import { createDb, migrateToLatest } from "#/lib/db";
+import { createDb, migrateToLatest } from "#/lib/db/postgres";
 import postgis from "knex-postgis";
 import { env } from "#/lib/env";
-import { createIngester } from "#/ingester";
+import { createIngester } from "#/lib/ingester";
 import { createRouter } from "#/routes";
-import { createClient } from "#/auth/client";
+import { createClient } from "#/lib/auth/client";
+import { Database } from "#/lib/db/postgres";
 import {
   createBidirectionalResolver,
   createIdResolver,
@@ -19,19 +20,23 @@ import {
 import { createServer, Server as LexServer } from "./lexicon";
 import { type Options as XrpcOptions } from "@atproto/xrpc-server";
 import {
-  LexiconController,
+  ISoapStoneLexiconController,
   SoapStoneLexiconController,
 } from "./lib/controllers";
 import { SoapStoneLexiconHandler } from "./lib/handlers";
+import { AuthRepository } from "./lib/repositories/auth_repo";
+import { PostRepository } from "./lib/repositories/post_repo";
+import { AtProtoRepository } from "./lib/repositories/atproto_repo";
 
 // Application state passed to the router and elsewhere
 export type AppContext = {
-  controller: LexiconController;
+  controller: ISoapStoneLexiconController;
   handler: SoapStoneLexiconHandler;
   ingester: Firehose;
   logger: pino.Logger;
   oauthClient: OAuthClient;
   resolver: BidirectionalResolver;
+  db: Database;
 };
 
 export class SoapStoneServer {
@@ -52,17 +57,18 @@ export class SoapStoneServer {
     const st: postgis.KnexPostgis = postgis(db);
     await migrateToLatest(db);
 
+    // Create our repositories
+    const authRepo = new AuthRepository(db);
+    const oauthClient = await createClient(authRepo);
+    const postRepo = new PostRepository(db, st);
+    const atproto_repo = new AtProtoRepository(oauthClient);
+
     // Create the atproto utilities
-    const oauthClient = await createClient(db);
     const baseIdResolver = createIdResolver();
-    const ingester = createIngester(db, baseIdResolver);
     const resolver = createBidirectionalResolver(baseIdResolver);
-    const controller = new SoapStoneLexiconController(db, st);
-    const handler = new SoapStoneLexiconHandler(
-      controller,
-      oauthClient,
-      logger,
-    );
+    const controller = new SoapStoneLexiconController(postRepo, atproto_repo);
+    const ingester = createIngester(postRepo, baseIdResolver);
+    const handler = new SoapStoneLexiconHandler(controller, logger);
     const ctx = {
       controller,
       handler,
@@ -70,6 +76,7 @@ export class SoapStoneServer {
       logger,
       oauthClient,
       resolver,
+      db,
     };
 
     // Subscribe to events on the firehose

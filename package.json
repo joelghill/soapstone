@@ -68,6 +68,7 @@
     "entry": [
       "src",
       "!src/**/__tests__/**",
+      "!src/**/*.md",
       "!src/**/*.test.*"
     ],
     "splitting": false,

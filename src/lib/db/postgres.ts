@@ -15,16 +15,26 @@ export const createDb = (): Database => {
   if (dbInstance) {
     return dbInstance;
   }
-
-  const config: Knex.Config = {
-    client: "pg",
-    connection: {
+  let connection;
+  if (env.DB_URL) {
+    console.log("Using DATABASE_URL for database connection");
+    connection = { uri: env.DB_URL };
+  } else {
+    console.log(
+      `Using individual DB_* env vars for database connection: host=${env.DB_HOST} port=${env.DB_PORT} db=${env.DB_NAME} user=${env.DB_USER}`,
+    );
+    connection = {
       host: env.DB_HOST,
       port: env.DB_PORT,
       database: env.DB_NAME,
       user: env.DB_USER,
       password: env.DB_PASSWORD,
-    },
+    };
+  }
+
+  const config: Knex.Config = {
+    client: "pg",
+    connection: connection,
     pool: {
       min: 2,
       max: 10,

@@ -18,7 +18,7 @@ export const createDb = (): Database => {
   let connection;
   if (env.DB_URL) {
     console.log("Using DATABASE_URL for database connection");
-    connection = { uri: env.DB_URL };
+    connection = env.DB_URL;
   } else {
     console.log(
       `Using individual DB_* env vars for database connection: host=${env.DB_HOST} port=${env.DB_PORT} db=${env.DB_NAME} user=${env.DB_USER}`,

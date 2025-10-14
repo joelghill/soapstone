@@ -12,7 +12,7 @@ COPY package.json yarn.lock .yarnrc.yml ./
 COPY .yarn ./.yarn
 
 # Install dependencies
-RUN yarn install --frozen-lockfile
+RUN yarn install --immutable
 
 # Development stage
 FROM base AS development
@@ -43,7 +43,8 @@ COPY package.json yarn.lock .yarnrc.yml ./
 COPY .yarn ./.yarn
 
 # Install only production dependencies
-RUN yarn install --frozen-lockfile --production && yarn cache clean
+ENV NODE_ENV=production
+RUN yarn install --immutable && yarn cache clean
 
 # Copy built application
 COPY --from=build /app/dist ./dist

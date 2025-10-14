@@ -1,9 +1,9 @@
-import postgis from "knex-postgis";
+const postgis = require("knex-postgis");
 /**
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-export async function up(knex) {
+exports.up = async function (knex) {
   const st = postgis(knex);
   return Promise.all([
     // Status table
@@ -64,14 +64,13 @@ export async function up(knex) {
         .onDelete("CASCADE");
     }),
   ]);
-}
+};
 
 /**
- * @param { import("knex").K
- * nex } knex
+ * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-export async function down(knex) {
+exports.down = async function (knex) {
   return Promise.all([
     knex.schema.dropTableIfExists("rating"),
     knex.schema.dropTableIfExists("auth_state"),
@@ -79,4 +78,4 @@ export async function down(knex) {
     knex.schema.dropTableIfExists("post"),
     knex.schema.dropTableIfExists("status"),
   ]);
-}
+};

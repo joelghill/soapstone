@@ -31,12 +31,10 @@ export const createDb = (): Database => {
       password: env.DB_PASSWORD,
       ssl: env.DB_CA_CERT
         ? {
-            requestCert: true,
-            rejectUnauthorized: true,
-            ca: env.DB_CA_CERT,
+            cert: env.DB_CA_CERT,
           }
         : undefined,
-    };
+    } as Knex.PgConnectionConfig;
   }
 
   const config: Knex.Config = {

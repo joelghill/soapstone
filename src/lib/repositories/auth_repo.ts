@@ -11,7 +11,6 @@ export class AuthRepository {
   // Auth Session methods
   async getSavedSession(key: string): Promise<AuthSession | undefined> {
     const result = await this.db("auth_session")
-      .withSchema("auth")
       .select("key", "session")
       .where("key", key)
       .first();
@@ -21,14 +20,13 @@ export class AuthRepository {
 
   async setSavedSession(key: string, session: string): Promise<void> {
     await this.db("auth_session")
-      .withSchema("auth")
       .insert({ key: key, session: session })
       .onConflict("key")
       .merge({ session: session });
   }
 
   async deleteSavedSession(key: string): Promise<void> {
-    await this.db("auth_session").withSchema("auth").where("key", key).del();
+    await this.db("auth_session").where("key", key).del();
   }
 
   // Auth State methods

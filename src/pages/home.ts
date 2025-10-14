@@ -1,44 +1,11 @@
-import type { Status } from "#/lib/db/postgres";
+import type { Post } from "#/lib/repositories/entities";
 import { html } from "../lib/view";
 import { shell } from "./shell";
 
-const TODAY = new Date().toDateString();
-
-const STATUS_OPTIONS = [
-  "👍",
-  "👎",
-  "💙",
-  "🥹",
-  "😧",
-  "😤",
-  "🙃",
-  "😉",
-  "😎",
-  "🤓",
-  "🤨",
-  "🥳",
-  "😭",
-  "😤",
-  "🤯",
-  "🫡",
-  "💀",
-  "✊",
-  "🤘",
-  "👀",
-  "🧠",
-  "👩‍💻",
-  "🧑‍💻",
-  "🥷",
-  "🧌",
-  "🦋",
-  "🚀",
-];
-
 type Props = {
-  statuses: Status[];
+  posts: Post[];
   didHandleMap: Record<string, string>;
   profile?: { displayName?: string };
-  myStatus?: Status;
 };
 
 export function home(props: Props) {
@@ -48,59 +15,43 @@ export function home(props: Props) {
   });
 }
 
-function content({ statuses, didHandleMap, profile, myStatus }: Props) {
+function content({ posts, didHandleMap, profile }: Props) {
   return html`<div id="root">
     <div class="error"></div>
     <div id="header">
-      <h1>Statusphere</h1>
-      <p>Set your status on the Atmosphere.</p>
+      <h1>SOAPSTONE</h1>
     </div>
     <div class="container">
       <div class="card">
         ${profile
           ? html`<form action="/logout" method="post" class="session-form">
               <div>
-                Hi, <strong>${profile.displayName || "friend"}</strong>. What's
-                your status today?
+                Hi, <strong>${profile.displayName || "friend"}</strong>.
               </div>
               <div>
                 <button type="submit">Log out</button>
               </div>
             </form>`
           : html`<div class="session-form">
-              <div><a href="/login">Log in</a> to set your status!</div>
+              <div><a href="/login">Log in</a> to post and view posts!</div>
               <div>
                 <a href="/login" class="button">Log in</a>
               </div>
             </div>`}
       </div>
-      <form action="/status" method="post" class="status-options">
-        ${STATUS_OPTIONS.map(
-          (status) =>
-            html`<button
-              class=${myStatus?.status === status
-                ? "status-option selected"
-                : "status-option"}
-              name="status"
-              value="${status}"
-            >
-              ${status}
-            </button>`,
-        )}
-      </form>
-      ${statuses.map((status, i) => {
-        const handle = didHandleMap[status.authorDid] || status.authorDid;
-        const date = ts(status);
+      ${posts.map((post, i) => {
+        const handle = didHandleMap[post.authorDid] || post.authorDid;
+        const date = formatDate(post.createdAt);
+        const location = formatLocation(post.location);
         return html`
-          <div class=${i === 0 ? "status-line no-line" : "status-line"}>
-            <div>
-              <div class="status">${status.status}</div>
+          <div class=${i === 0 ? "post-line no-line" : "post-line"}>
+            <div class="post-content">
+              <div class="post-text">${post.text}</div>
+              <div class="post-location">${location}</div>
             </div>
-            <div class="desc">
+            <div class="post-meta">
               <a class="author" href=${toBskyLink(handle)}>@${handle}</a>
-              ${date === TODAY
-                ? `is feeling ${status.status} today`
-                : `was feeling ${status.status} on ${date}`}
+              <span class="post-date">${date}</span>
             </div>
           </div>
         `;
@@ -109,13 +60,19 @@ function content({ statuses, didHandleMap, profile, myStatus }: Props) {
   </div>`;
 }
 
-function toBskyLink(did: string) {
-  return `https://bsky.app/profile/${did}`;
+function toBskyLink(handle: string) {
+  return `https://bsky.app/profile/${handle}`;
 }
 
-function ts(status: Status) {
-  const createdAt = new Date(status.createdAt);
-  const indexedAt = new Date(status.indexedAt);
-  if (createdAt < indexedAt) return createdAt.toDateString();
-  return indexedAt.toDateString();
+function formatDate(dateString: string) {
+  const date = new Date(dateString);
+  return date.toLocaleDateString();
+}
+
+function formatLocation(location: any) {
+  if (location && location.coordinates) {
+    const [longitude, latitude] = location.coordinates;
+    return `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+  }
+  return "Unknown location";
 }

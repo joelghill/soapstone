@@ -164,29 +164,17 @@ export const createRouter = (ctx: AppContext) => {
       // If the user is signed in, get an agent which communicates with their server
       const agent = await getSessionAgent(req, res, ctx);
 
-      // Fetch data stored in our PostgreSQL database
-      const statuses = await ctx
-        .db("status")
-        .select("*")
-        .orderBy("indexedAt", "desc")
-        .limit(10);
-      const myStatus = agent
-        ? await ctx
-            .db("status")
-            .select("*")
-            .where("authorDid", agent.assertDid)
-            .orderBy("indexedAt", "desc")
-            .first()
-        : undefined;
+      // Fetch posts from our PostgreSQL database
+      const posts = await ctx.posts_repo.getPostsPaginated(50);
 
       // Map user DIDs to their domain-name handles
       const didHandleMap = await ctx.resolver.resolveDidsToHandles(
-        statuses.map((s) => s.authorDid),
+        posts.map((p) => p.authorDid),
       );
 
       if (!agent) {
         // Serve the logged-out view
-        res.type("html").send(page(home({ statuses, didHandleMap })));
+        res.type("html").send(page(home({ posts, didHandleMap })));
         return;
       }
 
@@ -212,81 +200,13 @@ export const createRouter = (ctx: AppContext) => {
       res.type("html").send(
         page(
           home({
-            statuses,
+            posts,
             didHandleMap,
             profile,
-            myStatus,
           }),
         ),
       );
     }),
   );
-
-  // "Set status" handler
-  router.post(
-    "/status",
-    handler(async (req, res) => {
-      // If the user is signed in, get an agent which communicates with their server
-      const agent = await getSessionAgent(req, res, ctx);
-      if (!agent) {
-        res.status(401).type("html").send("<h1>Error: Session required</h1>");
-        return;
-      }
-
-      // Construct & validate their status record
-      const rkey = TID.nextStr();
-      const record = {
-        $type: "xyz.statusphere.status",
-        status: req.body?.status,
-        createdAt: new Date().toISOString(),
-      };
-      if (!Status.validateRecord(record).success) {
-        res.status(400).type("html").send("<h1>Error: Invalid status</h1>");
-        return;
-      }
-
-      let uri;
-      try {
-        // Write the status record to the user's repository
-        const putRes = await agent.com.atproto.repo.putRecord({
-          repo: agent.assertDid,
-          collection: "xyz.statusphere.status",
-          rkey,
-          record,
-          validate: false,
-        });
-        uri = putRes.data.uri;
-      } catch (err) {
-        ctx.logger.warn({ err }, "failed to write record");
-        res
-          .status(500)
-          .type("html")
-          .send("<h1>Error: Failed to write record</h1>");
-        return;
-      }
-
-      try {
-        // Optimistically update our PostgreSQL database
-        // This isn't strictly necessary because the write event will be
-        // handled in #/firehose/ingestor.ts, but it ensures that future reads
-        // will be up-to-date after this method finishes.
-        await ctx.db("status").insert({
-          uri,
-          authorDid: agent.assertDid,
-          status: record.status,
-          createdAt: record.createdAt,
-          indexedAt: new Date().toISOString(),
-        });
-      } catch (err) {
-        ctx.logger.warn(
-          { err },
-          "failed to update computed view; ignoring as it should be caught by the firehose",
-        );
-      }
-
-      res.redirect("/");
-    }),
-  );
-
   return router;
 };

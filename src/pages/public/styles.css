@@ -1,10 +1,12 @@
 body {
   font-family: Arial, Helvetica, sans-serif;
+  background-color: #1a1a1a;
+  color: #ffffff;
 
-  --border-color: #ddd;
-  --gray-100: #fafafa;
-  --gray-500: #666;
-  --gray-700: #333;
+  --border-color: #444;
+  --gray-100: #2a2a2a;
+  --gray-500: #bbb;
+  --gray-700: #eee;
   --primary-100: #d2e7ff;
   --primary-200: #b1d3fa;
   --primary-400: #2e8fff;
@@ -74,13 +76,16 @@ button:hover, .button:hover {
 }
 
 #header {
-  background-color: #fff;
+  background-color: #1a1a1a;
   text-align: center;
   padding: 0.5rem 0 1.5rem;
+  color: #ffffff;
 }
 
 #header h1 {
   font-size: 5rem;
+  color: #ffffff;
+  margin: 0;
 }
 
 .container {
@@ -96,7 +101,8 @@ button:hover, .button:hover {
   /* border: 1px solid var(--border-color); */
   border-radius: 6px;
   padding: 10px 16px;
-  background-color: #fff;
+  background-color: #2a2a2a;
+  border: 1px solid var(--border-color);
 }
 .card > :first-child {
   margin-top: 0;
@@ -209,4 +215,63 @@ button:hover, .button:hover {
   text-align: center;
   text-wrap: balance;
   margin-top: 1rem;
+}
+
+/* Post styles for dark theme */
+.post-line {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background-color: #2a2a2a;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 12px;
+}
+
+.post-line.no-line {
+  margin-top: 12px;
+}
+
+.post-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.post-text {
+  font-size: 1.1rem;
+  line-height: 1.4;
+  color: #ffffff;
+}
+
+.post-location {
+  font-size: 0.9rem;
+  color: var(--gray-500);
+  font-style: italic;
+}
+
+.post-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  color: var(--gray-500);
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-color);
+}
+
+.post-meta .author {
+  color: var(--primary-400);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.post-meta .author:hover {
+  text-decoration: underline;
+}
+
+.post-date {
+  color: var(--gray-500);
 }

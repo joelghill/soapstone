@@ -11,7 +11,6 @@ import { env } from "#/lib/env";
 import { createIngester } from "#/lib/ingester";
 import { createRouter } from "#/routes";
 import { createClient } from "#/lib/auth/client";
-import { Database } from "#/lib/db/postgres";
 import {
   createBidirectionalResolver,
   createIdResolver,
@@ -36,7 +35,7 @@ export type AppContext = {
   logger: pino.Logger;
   oauthClient: OAuthClient;
   resolver: BidirectionalResolver;
-  db: Database;
+  posts_repo: PostRepository;
 };
 
 export class SoapStoneServer {
@@ -60,14 +59,14 @@ export class SoapStoneServer {
     // Create our repositories
     const authRepo = new AuthRepository(db);
     const oauthClient = await createClient(authRepo);
-    const postRepo = new PostRepository(db, st);
+    const posts_repo = new PostRepository(db, st);
     const atproto_repo = new AtProtoRepository(oauthClient);
 
     // Create the atproto utilities
     const baseIdResolver = createIdResolver();
     const resolver = createBidirectionalResolver(baseIdResolver);
-    const controller = new SoapStoneLexiconController(postRepo, atproto_repo);
-    const ingester = createIngester(postRepo, baseIdResolver);
+    const controller = new SoapStoneLexiconController(posts_repo, atproto_repo);
+    const ingester = createIngester(posts_repo, baseIdResolver);
     const handler = new SoapStoneLexiconHandler(controller, logger);
     const ctx = {
       controller,
@@ -76,7 +75,7 @@ export class SoapStoneServer {
       logger,
       oauthClient,
       resolver,
-      db,
+      posts_repo,
     };
 
     // Subscribe to events on the firehose

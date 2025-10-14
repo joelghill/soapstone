@@ -199,4 +199,32 @@ export class PostRepository {
   async deletePost(uri: string): Promise<void> {
     await this.db("post").where("uri", uri).del();
   }
+
+  /**
+   * Gets posts in descending order of creation date with pagination.
+   * @param limit - Maximum number of posts to return (default: 20).
+   * @param offset - Number of posts to skip (default: 0).
+   * @returns A promise that resolves to an array of PostView objects.
+   */
+  async getPostsPaginated(
+    limit: number = 20,
+    offset: number = 0,
+  ): Promise<Post[]> {
+    // Query posts with pagination and ordering
+    const query = this.db("post")
+      .select(
+        "post.uri",
+        "post.author_did",
+        "post.text",
+        "post.location",
+        "post.created_at",
+        "post.indexed_at",
+        this.st.asText("post.location").as("location_text"),
+      )
+      .orderBy("post.created_at", "desc")
+      .limit(limit)
+      .offset(offset);
+
+    return await query;
+  }
 }

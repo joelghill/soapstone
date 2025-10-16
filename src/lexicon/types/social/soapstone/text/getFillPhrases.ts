@@ -1,7 +1,6 @@
 /**
  * GENERATED CODE - DO NOT MODIFY
  */
-import express from 'express'
 import { type ValidationResult, BlobRef } from '@atproto/lexicon'
 import { CID } from 'multiformats/cid'
 import { validate as _validate } from '../../../../lexicons'
@@ -10,40 +9,37 @@ import {
   is$typed as _is$typed,
   type OmitKey,
 } from '../../../../util'
-import { HandlerAuth, HandlerPipeThrough } from '@atproto/xrpc-server'
-import type * as SocialSoapstoneTextEn from './en.js'
 
 const is$typed = _is$typed,
   validate = _validate
 const id = 'social.soapstone.text.getFillPhrases'
 
-export interface QueryParams {
+export type QueryParams = {
   /** Language code for the fill phrases. Defaults to 'en' if not specified. */
   language: string
 }
-
 export type InputSchema = undefined
 
 export interface OutputSchema {
   /** Character types that can be used in fill phrases */
-  characters: ($Typed<SocialSoapstoneTextEn.Characters> | { $type: string })[]
+  characters: string[]
   /** Objects that can be used in fill phrases */
-  objects: ($Typed<SocialSoapstoneTextEn.Objects> | { $type: string })[]
+  objects: string[]
   /** Techniques that can be used in fill phrases */
-  techniques: ($Typed<SocialSoapstoneTextEn.Techniques> | { $type: string })[]
+  techniques: string[]
   /** Actions that can be used in fill phrases */
-  actions: ($Typed<SocialSoapstoneTextEn.Actions> | { $type: string })[]
+  actions: string[]
   /** Geography types that can be used in fill phrases */
-  geography: ($Typed<SocialSoapstoneTextEn.Geography> | { $type: string })[]
+  geography: string[]
   /** Orientation types that can be used in fill phrases */
-  orientation: ($Typed<SocialSoapstoneTextEn.Orientation> | { $type: string })[]
+  orientation: string[]
   /** Body parts that can be used in fill phrases */
-  bodyParts: ($Typed<SocialSoapstoneTextEn.BodyParts> | { $type: string })[]
+  bodyParts: string[]
   /** Attributes that can be used in fill phrases */
-  attributes: ($Typed<SocialSoapstoneTextEn.Attributes> | { $type: string })[]
+  attributes: string[]
 }
 
-export type HandlerInput = undefined
+export type HandlerInput = void
 
 export interface HandlerSuccess {
   encoding: 'application/json'
@@ -56,15 +52,4 @@ export interface HandlerError {
   message?: string
 }
 
-export type HandlerOutput = HandlerError | HandlerSuccess | HandlerPipeThrough
-export type HandlerReqCtx<HA extends HandlerAuth = never> = {
-  auth: HA
-  params: QueryParams
-  input: HandlerInput
-  req: express.Request
-  res: express.Response
-  resetRouteRateLimits: () => Promise<void>
-}
-export type Handler<HA extends HandlerAuth = never> = (
-  ctx: HandlerReqCtx<HA>,
-) => Promise<HandlerOutput> | HandlerOutput
+export type HandlerOutput = HandlerError | HandlerSuccess

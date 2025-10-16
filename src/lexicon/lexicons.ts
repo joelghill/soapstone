@@ -248,6 +248,26 @@ export const schemaDict = {
       },
     },
   },
+  ComAtprotoRepoDefs: {
+    lexicon: 1,
+    id: 'com.atproto.repo.defs',
+    defs: {
+      commitMeta: {
+        type: 'object',
+        required: ['cid', 'rev'],
+        properties: {
+          cid: {
+            type: 'string',
+            format: 'cid',
+          },
+          rev: {
+            type: 'string',
+            format: 'tid',
+          },
+        },
+      },
+    },
+  },
   ComAtprotoRepoStrongRef: {
     lexicon: 1,
     id: 'com.atproto.repo.strongRef',
@@ -269,84 +289,138 @@ export const schemaDict = {
       },
     },
   },
-  ComAtprotoRepoDefs: {
+  SocialSoapstoneActorDefs: {
     lexicon: 1,
-    id: 'com.atproto.repo.defs',
+    id: 'social.soapstone.actor.defs',
     defs: {
-      commitMeta: {
+      profileViewMinimal: {
         type: 'object',
-        required: ['cid', 'rev'],
+        required: ['did', 'handle'],
         properties: {
-          cid: {
+          did: {
             type: 'string',
-            format: 'cid',
+            format: 'did',
           },
-          rev: {
+          handle: {
             type: 'string',
-            format: 'tid',
+            format: 'handle',
+          },
+          displayName: {
+            type: 'string',
+            maxGraphemes: 64,
+            maxLength: 640,
+          },
+          avatar: {
+            type: 'string',
+            format: 'uri',
           },
         },
       },
     },
   },
-  SocialSoapstoneFeedPost: {
+  SocialSoapstoneFeedCreatePost: {
     lexicon: 1,
-    id: 'social.soapstone.feed.post',
+    id: 'social.soapstone.feed.createPost',
     defs: {
       main: {
-        type: 'record',
-        key: 'tid',
-        record: {
-          type: 'object',
-          required: ['message', 'location', 'createdAt'],
-          properties: {
-            message: {
-              type: 'ref',
-              ref: 'lex:social.soapstone.message.defs#message',
-            },
-            location: {
-              type: 'ref',
-              ref: 'lex:social.soapstone.location.defs#location',
-            },
-            createdAt: {
-              type: 'string',
-              format: 'datetime',
-            },
-          },
-        },
-      },
-    },
-  },
-  SocialSoapstoneFeedRating: {
-    lexicon: 1,
-    id: 'social.soapstone.feed.rating',
-    defs: {
-      main: {
-        type: 'record',
+        type: 'procedure',
         description:
-          'Record declaring a positive or negative rating of a piece of subject content.',
-        key: 'tid',
-        record: {
-          type: 'object',
-          required: ['message', 'value', 'createdAt', 'via'],
-          properties: {
-            message: {
-              type: 'ref',
-              ref: 'lex:com.atproto.repo.strongRef',
-            },
-            value: {
-              type: 'boolean',
-            },
-            createdAt: {
-              type: 'string',
-              format: 'datetime',
-            },
-            via: {
-              type: 'ref',
-              ref: 'lex:com.atproto.repo.strongRef',
+          'Create a single new post. Requires auth, implemented by App View.',
+        input: {
+          encoding: 'application/json',
+          schema: {
+            type: 'ref',
+            ref: 'lex:social.soapstone.feed.defs#createPostSchema',
+          },
+        },
+        output: {
+          encoding: 'application/json',
+          schema: {
+            type: 'ref',
+            ref: 'lex:social.soapstone.feed.defs#createPostResponse',
+          },
+        },
+        errors: [
+          {
+            name: 'InvalidGeoURI',
+            description:
+              'Indicates that the submitted location is not a valid Geo URI.',
+          },
+          {
+            name: 'InvalidSwap',
+            description:
+              "Indicates that 'swapCommit' didn't match current repo commit.",
+          },
+        ],
+      },
+    },
+  },
+  SocialSoapstoneFeedCreateRating: {
+    lexicon: 1,
+    id: 'social.soapstone.feed.createRating',
+    defs: {
+      main: {
+        type: 'procedure',
+        description:
+          'Create a rating for a post. Requires auth, implemented by App View.',
+        input: {
+          encoding: 'application/json',
+          schema: {
+            type: 'object',
+            required: ['post', 'value'],
+            properties: {
+              post: {
+                type: 'ref',
+                ref: 'lex:com.atproto.repo.strongRef',
+                description: 'Reference to the post being rated.',
+              },
+              value: {
+                type: 'boolean',
+                description:
+                  'The rating value. True for positive rating, false for negative rating.',
+              },
             },
           },
         },
+        output: {
+          encoding: 'application/json',
+          schema: {
+            type: 'object',
+            required: ['uri', 'cid'],
+            properties: {
+              uri: {
+                type: 'string',
+                format: 'at-uri',
+                description: 'The URI of the created rating record.',
+              },
+              cid: {
+                type: 'string',
+                format: 'cid',
+                description: 'The CID of the created rating record.',
+              },
+              commit: {
+                type: 'ref',
+                ref: 'lex:com.atproto.repo.defs#commitMeta',
+              },
+            },
+          },
+        },
+        errors: [
+          {
+            name: 'InvalidPost',
+            description:
+              'The referenced post does not exist or is not accessible.',
+          },
+          {
+            name: 'DuplicateRating',
+            description: 'User has already rated this post.',
+          },
+          {
+            name: 'InvalidSwap',
+            description:
+              "Indicates that 'swapCommit' didn't match current repo commit.",
+          },
+        ],
       },
     },
   },
@@ -439,88 +513,6 @@ export const schemaDict = {
       },
     },
   },
-  SocialSoapstoneFeedGetPosts: {
-    lexicon: 1,
-    id: 'social.soapstone.feed.getPosts',
-    defs: {
-      main: {
-        type: 'query',
-        description: 'Gets soapstone posts in a location',
-        parameters: {
-          type: 'params',
-          required: ['location'],
-          properties: {
-            location: {
-              type: 'string',
-              description:
-                "The requeter's current location as described by a geo URI, a scheme defined by the Internet Engineering Task Force's RFC 5870 (published 8 June 2010).",
-              format: 'uri',
-            },
-            radius: {
-              type: 'integer',
-              description:
-                'The radius in meters around the location to search for posts',
-              minimum: 1,
-              maximum: 1000,
-            },
-          },
-        },
-        output: {
-          encoding: 'application/json',
-          schema: {
-            type: 'object',
-            required: ['posts'],
-            properties: {
-              posts: {
-                type: 'array',
-                items: {
-                  type: 'ref',
-                  ref: 'lex:social.soapstone.feed.defs#postView',
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  },
-  SocialSoapstoneFeedDefsCreatePost: {
-    lexicon: 1,
-    id: 'social.soapstone.feed.defs.createPost',
-    defs: {
-      main: {
-        type: 'procedure',
-        description:
-          'Create a single new post. Requires auth, implemented by App View.',
-        input: {
-          encoding: 'application/json',
-          schema: {
-            type: 'ref',
-            ref: 'lex:social.soapstone.feed.defs#createPostSchema',
-          },
-        },
-        output: {
-          encoding: 'application/json',
-          schema: {
-            type: 'ref',
-            ref: 'lex:social.soapstone.feed.defs#createPostResponse',
-          },
-        },
-        errors: [
-          {
-            name: 'InvalidGeoURI',
-            description:
-              'Indicates that the submitted location is not a valid Geo URI.',
-          },
-          {
-            name: 'InvalidSwap',
-            description:
-              "Indicates that 'swapCommit' didn't match current repo commit.",
-          },
-        ],
-      },
-    },
-  },
   SocialSoapstoneFeedDeletePost: {
     lexicon: 1,
     id: 'social.soapstone.feed.deletePost',
@@ -558,75 +550,6 @@ export const schemaDict = {
         errors: [
           {
             name: 'InvalidSwap',
-          },
-        ],
-      },
-    },
-  },
-  SocialSoapstoneFeedCreateRating: {
-    lexicon: 1,
-    id: 'social.soapstone.feed.createRating',
-    defs: {
-      main: {
-        type: 'procedure',
-        description:
-          'Create a rating for a post. Requires auth, implemented by App View.',
-        input: {
-          encoding: 'application/json',
-          schema: {
-            type: 'object',
-            required: ['post', 'value'],
-            properties: {
-              post: {
-                type: 'ref',
-                ref: 'lex:com.atproto.repo.strongRef',
-                description: 'Reference to the post being rated.',
-              },
-              value: {
-                type: 'boolean',
-                description:
-                  'The rating value. True for positive rating, false for negative rating.',
-              },
-            },
-          },
-        },
-        output: {
-          encoding: 'application/json',
-          schema: {
-            type: 'object',
-            required: ['uri', 'cid'],
-            properties: {
-              uri: {
-                type: 'string',
-                format: 'at-uri',
-                description: 'The URI of the created rating record.',
-              },
-              cid: {
-                type: 'string',
-                format: 'cid',
-                description: 'The CID of the created rating record.',
-              },
-              commit: {
-                type: 'ref',
-                ref: 'lex:com.atproto.repo.defs#commitMeta',
-              },
-            },
-          },
-        },
-        errors: [
-          {
-            name: 'InvalidPost',
-            description:
-              'The referenced post does not exist or is not accessible.',
-          },
-          {
-            name: 'DuplicateRating',
-            description: 'User has already rated this post.',
-          },
-          {
-            name: 'InvalidSwap',
-            description:
-              "Indicates that 'swapCommit' didn't match current repo commit.",
           },
         ],
       },
@@ -676,6 +599,112 @@ export const schemaDict = {
       },
     },
   },
+  SocialSoapstoneFeedGetPosts: {
+    lexicon: 1,
+    id: 'social.soapstone.feed.getPosts',
+    defs: {
+      main: {
+        type: 'query',
+        description: 'Gets soapstone posts in a location',
+        parameters: {
+          type: 'params',
+          required: ['location'],
+          properties: {
+            location: {
+              type: 'string',
+              description:
+                "The requeter's current location as described by a geo URI, a scheme defined by the Internet Engineering Task Force's RFC 5870 (published 8 June 2010).",
+              format: 'uri',
+            },
+            radius: {
+              type: 'integer',
+              description:
+                'The radius in meters around the location to search for posts',
+              minimum: 1,
+              maximum: 1000,
+            },
+          },
+        },
+        output: {
+          encoding: 'application/json',
+          schema: {
+            type: 'object',
+            required: ['posts'],
+            properties: {
+              posts: {
+                type: 'array',
+                items: {
+                  type: 'ref',
+                  ref: 'lex:social.soapstone.feed.defs#postView',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+  SocialSoapstoneFeedPost: {
+    lexicon: 1,
+    id: 'social.soapstone.feed.post',
+    defs: {
+      main: {
+        type: 'record',
+        key: 'tid',
+        record: {
+          type: 'object',
+          required: ['message', 'location', 'createdAt'],
+          properties: {
+            message: {
+              type: 'ref',
+              ref: 'lex:social.soapstone.message.defs#message',
+            },
+            location: {
+              type: 'ref',
+              ref: 'lex:social.soapstone.location.defs#location',
+            },
+            createdAt: {
+              type: 'string',
+              format: 'datetime',
+            },
+          },
+        },
+      },
+    },
+  },
+  SocialSoapstoneFeedRating: {
+    lexicon: 1,
+    id: 'social.soapstone.feed.rating',
+    defs: {
+      main: {
+        type: 'record',
+        description:
+          'Record declaring a positive or negative rating of a piece of subject content.',
+        key: 'tid',
+        record: {
+          type: 'object',
+          required: ['message', 'value', 'createdAt', 'via'],
+          properties: {
+            message: {
+              type: 'ref',
+              ref: 'lex:com.atproto.repo.strongRef',
+            },
+            value: {
+              type: 'boolean',
+            },
+            createdAt: {
+              type: 'string',
+              format: 'datetime',
+            },
+            via: {
+              type: 'ref',
+              ref: 'lex:com.atproto.repo.strongRef',
+            },
+          },
+        },
+      },
+    },
+  },
   SocialSoapstoneLocationDefs: {
     lexicon: 1,
     id: 'social.soapstone.location.defs',
@@ -707,19 +736,19 @@ export const schemaDict = {
         properties: {
           base: {
             type: 'union',
-            refs: ['lex:social.soapstone.text.en#basePhrases'],
+            refs: ['lex:social.soapstone.text.en.defs#basePhrase'],
           },
           fill: {
             type: 'union',
             refs: [
-              'lex:social.soapstone.text.en#characters',
-              'lex:social.soapstone.text.en#objects',
-              'lex:social.soapstone.text.en#techniques',
-              'lex:social.soapstone.text.en#actions',
-              'lex:social.soapstone.text.en#geography',
-              'lex:social.soapstone.text.en#orientation',
-              'lex:social.soapstone.text.en#bodyParts',
-              'lex:social.soapstone.text.en#attributes',
+              'lex:social.soapstone.text.en.defs#character',
+              'lex:social.soapstone.text.en.defs#object',
+              'lex:social.soapstone.text.en.defs#technique',
+              'lex:social.soapstone.text.en.defs#action',
+              'lex:social.soapstone.text.en.defs#geography',
+              'lex:social.soapstone.text.en.defs#orientation',
+              'lex:social.soapstone.text.en.defs#bodyPart',
+              'lex:social.soapstone.text.en.defs#attribute',
             ],
           },
         },
@@ -735,252 +764,276 @@ export const schemaDict = {
       },
     },
   },
-  SocialSoapstoneActorDefs: {
+  SocialSoapstoneTextEnDefs: {
     lexicon: 1,
-    id: 'social.soapstone.actor.defs',
+    id: 'social.soapstone.text.en.defs',
     defs: {
-      profileViewMinimal: {
+      basePhrase: {
         type: 'object',
-        required: ['did', 'handle'],
         properties: {
-          did: {
+          selection: {
             type: 'string',
-            format: 'did',
-          },
-          handle: {
-            type: 'string',
-            format: 'handle',
-          },
-          displayName: {
-            type: 'string',
-            maxGraphemes: 64,
-            maxLength: 640,
-          },
-          avatar: {
-            type: 'string',
-            format: 'uri',
+            description:
+              "Selected base phrase for the message where the '****' is replaced with a fillPhrase value",
+            enum: [
+              '**** ahead',
+              'Be wary of ****',
+              'Try ****',
+              'Need ****',
+              'Imminent ****...',
+              'Weakness:****',
+              '****',
+              '****?',
+              'Good Luck',
+              'I did it!',
+              'Here!',
+              "I can't take this...",
+              'Praise the Sun!',
+            ],
           },
         },
       },
-    },
-  },
-  SocialSoapstoneTextEn: {
-    lexicon: 1,
-    id: 'social.soapstone.text.en',
-    defs: {
-      basePhrases: {
-        type: 'string',
+      character: {
+        type: 'object',
         description:
-          "Base phrase for the message where the '****' is replaced with a fillPhrase value",
-        enum: [
-          '**** ahead',
-          'Be wary of ****',
-          'Try ****',
-          'Need ****',
-          'Imminent ****...',
-          'Weakness:****',
-          '****',
-          '****?',
-          'Good Luck',
-          'I did it!',
-          'Here!',
-          "I can't take this...",
-          'Praise the Sun!',
-        ],
+          'Character types that can be used in conjunction with base phrases to form a complete message',
+        properties: {
+          selection: {
+            type: 'string',
+            enum: [
+              'Enemy',
+              'Tough enemy',
+              'Hollow',
+              'Soldier',
+              'Knight',
+              'Sniper',
+              'Caster',
+              'Giant',
+              'Skeleton',
+              'Ghost',
+              'Bug',
+              'Poison bug',
+              'Lizard',
+              'Drake',
+              'Flier',
+              'Golem',
+              'Statue',
+              'Monster',
+              'Strange creature',
+              'Demon',
+              'Darkwraith',
+              'Dragon',
+              'Boss',
+            ],
+          },
+        },
       },
-      characters: {
-        type: 'string',
-        description: 'Character types that can be used in the fill phrase',
-        enum: [
-          'Enemy',
-          'Tough enemy',
-          'Hollow',
-          'Soldier',
-          'Knight',
-          'Sniper',
-          'Caster',
-          'Giant',
-          'Skeleton',
-          'Ghost',
-          'Bug',
-          'Poison bug',
-          'Lizard',
-          'Drake',
-          'Flier',
-          'Golem',
-          'Statue',
-          'Monster',
-          'Strange creature',
-          'Demon',
-          'Darkwraith',
-          'Dragon',
-          'Boss',
-        ],
+      object: {
+        type: 'object',
+        description:
+          'Objects that can be used in conjunction with base phrases to form a complete message',
+        properties: {
+          selection: {
+            type: 'string',
+            enum: [
+              'Bonfire',
+              'Fog wall',
+              'Humanity',
+              'Lever',
+              'Switch',
+              'Key',
+              'Treasure',
+              'Chest',
+              'Weapon',
+              'Shield',
+              'Projectile',
+              'Armour',
+              'Item',
+              'Ring',
+              'Sorcery scroll',
+              'Pyromancy scroll',
+              'Miracle scroll',
+              'Ember',
+              'Trap',
+              'Covenant',
+              'Amazing key',
+              'Amazing treasure',
+              'Amazing chest',
+              'Amazing weapon',
+              'Amazing shield',
+              'Amazing projectile',
+              'Amazing armour',
+              'Amazing item',
+              'Amazing ring',
+              'Amazing sorcery scroll',
+              'Amazing pyromancy scroll',
+              'Amazing miracle scroll',
+              'Amazing ember',
+              'Amazing trap',
+            ],
+          },
+        },
       },
-      objects: {
-        type: 'string',
-        description: 'Objects that can be used in the fill phrase',
-        enum: [
-          'Bonfire',
-          'Fog wall',
-          'Humanity',
-          'Lever',
-          'Switch',
-          'Key',
-          'Treasure',
-          'Chest',
-          'Weapon',
-          'Shield',
-          'Projectile',
-          'Armour',
-          'Item',
-          'Ring',
-          'Sorcery scroll',
-          'Pyromancy scroll',
-          'Miracle scroll',
-          'Ember',
-          'Trap',
-          'Covenant',
-          'Amazing key',
-          'Amazing treasure',
-          'Amazing chest',
-          'Amazing weapon',
-          'Amazing shield',
-          'Amazing projectile',
-          'Amazing armour',
-          'Amazing item',
-          'Amazing ring',
-          'Amazing sorcery scroll',
-          'Amazing pyromancy scroll',
-          'Amazing miracle scroll',
-          'Amazing ember',
-          'Amazing trap',
-        ],
+      technique: {
+        type: 'object',
+        description:
+          'Techniques that can be used in conjunction with base phrases to form a complete message',
+        properties: {
+          selection: {
+            type: 'string',
+            enum: [
+              'Close-ranged battle',
+              'Ranged battle',
+              'Eliminating one at a time',
+              'Luring it out',
+              'Beating to a pulp',
+              'Lying in ambush',
+              'Stealth',
+              'Mimicry',
+              'Pincer attack',
+              'Hitting them in one swoop',
+              'Fleeing',
+              'Charging',
+              'Stabbing in the back',
+              'Sweeping attack',
+              'Shield breaking',
+              'Head shots',
+              'Sorcery',
+              'Pyromancy',
+              'Miracles',
+              'Jumping off',
+              'Sliding down',
+              'Dashing through',
+            ],
+          },
+        },
       },
-      techniques: {
-        type: 'string',
-        description: 'Techniques that can be used in the fill phrase',
-        enum: [
-          'Close-ranged battle',
-          'Ranged battle',
-          'Eliminating one at a time',
-          'Luring it out',
-          'Beating to a pulp',
-          'Lying in ambush',
-          'Stealth',
-          'Mimicry',
-          'Pincer attack',
-          'Hitting them in one swoop',
-          'Fleeing',
-          'Charging',
-          'Stabbing in the back',
-          'Sweeping attack',
-          'Shield breaking',
-          'Head shots',
-          'Sorcery',
-          'Pyromancy',
-          'Miracles',
-          'Jumping off',
-          'Sliding down',
-          'Dashing through',
-        ],
-      },
-      actions: {
-        type: 'string',
-        description: 'Action types that can be used in the fill phrase',
-        enum: [
-          'Rolling',
-          'Backstepping',
-          'Jumping',
-          'Attacking',
-          'Holding with both hands',
-          'Kicking',
-          'A plunging attack',
-          'Blocking',
-          'Parrying',
-          'Locking-on',
-        ],
+      action: {
+        type: 'object',
+        description:
+          'Action types that can be used in conjunction with base phrases to form a complete message',
+        properties: {
+          selection: {
+            type: 'string',
+            enum: [
+              'Rolling',
+              'Backstepping',
+              'Jumping',
+              'Attacking',
+              'Holding with both hands',
+              'Kicking',
+              'A plunging attack',
+              'Blocking',
+              'Parrying',
+              'Locking-on',
+            ],
+          },
+        },
       },
       geography: {
-        type: 'string',
-        description: 'Geography types that can be used in the fill phrase',
-        enum: [
-          'Path',
-          'Hidden path',
-          'Shortcut',
-          'Detour',
-          'Illusionary wall',
-          'Shortcut',
-          'Dead end',
-          'Swamp',
-          'Lava',
-          'Forest',
-          'Cave',
-          'Labyrinth',
-          'Safe zone',
-          'Danger zone',
-          'Sniper spot',
-          'Bright spot',
-          'Dark spot',
-          'Open area',
-          'Tight spot',
-          'Hidden place',
-          'Exchange',
-          'Gorgeous view',
-          'Fall',
-        ],
+        type: 'object',
+        description:
+          'Geography types that can be used in conjunction with base phrases to form a complete message',
+        properties: {
+          selection: {
+            type: 'string',
+            enum: [
+              'Path',
+              'Hidden path',
+              'Shortcut',
+              'Detour',
+              'Illusionary wall',
+              'Shortcut',
+              'Dead end',
+              'Swamp',
+              'Lava',
+              'Forest',
+              'Cave',
+              'Labyrinth',
+              'Safe zone',
+              'Danger zone',
+              'Sniper spot',
+              'Bright spot',
+              'Dark spot',
+              'Open area',
+              'Tight spot',
+              'Hidden place',
+              'Exchange',
+              'Gorgeous view',
+              'Fall',
+            ],
+          },
+        },
       },
       orientation: {
-        type: 'string',
-        description: 'Orientation types that can be used in the fill phrase',
-        enum: [
-          'Front',
-          'Back',
-          'Left',
-          'Right',
-          'Up',
-          'Down',
-          'Feet',
-          'Head',
-          'Back',
-        ],
+        type: 'object',
+        description:
+          'Orientation types that can be used in conjunction with base phrases to form a complete message',
+        properties: {
+          selection: {
+            type: 'string',
+            enum: [
+              'Front',
+              'Back',
+              'Left',
+              'Right',
+              'Up',
+              'Down',
+              'Feet',
+              'Head',
+              'Back',
+            ],
+          },
+        },
       },
-      bodyParts: {
-        type: 'string',
-        description: 'Body parts that can be used in the fill phrase',
-        enum: [
-          'Head',
-          'Neck',
-          'Stomach',
-          'Back',
-          'Arm',
-          'Leg',
-          'Heel',
-          'Rear',
-          'Tail',
-          'Wings',
-          'Anywhere',
-        ],
+      bodyPart: {
+        type: 'object',
+        description:
+          'Body parts that can be used in conjunction with base phrases to form a complete message',
+        properties: {
+          selection: {
+            type: 'string',
+            enum: [
+              'Head',
+              'Neck',
+              'Stomach',
+              'Back',
+              'Arm',
+              'Leg',
+              'Heel',
+              'Rear',
+              'Tail',
+              'Wings',
+              'Anywhere',
+            ],
+          },
+        },
       },
-      attributes: {
-        type: 'string',
-        description: 'Attributes that can be used in the fill phrase',
-        enum: [
-          'Strike',
-          'Thrust',
-          'Slash',
-          'Magic',
-          'Fire',
-          'Lightning',
-          'Critical hits',
-          'Bleeding',
-          'Poison',
-          'Strong poison',
-          'Curses',
-          'Divine',
-          'Occult',
-          'Crystal',
-        ],
+      attribute: {
+        type: 'object',
+        description:
+          'Attributes that can be used in conjunction with base phrases to form a complete message',
+        properties: {
+          selection: {
+            type: 'string',
+            enum: [
+              'Strike',
+              'Thrust',
+              'Slash',
+              'Magic',
+              'Fire',
+              'Lightning',
+              'Critical hits',
+              'Bleeding',
+              'Poison',
+              'Strong poison',
+              'Curses',
+              'Divine',
+              'Occult',
+              'Crystal',
+            ],
+          },
+        },
       },
     },
   },
@@ -1013,8 +1066,7 @@ export const schemaDict = {
                 type: 'array',
                 description: 'Array of all available base phrases',
                 items: {
-                  type: 'union',
-                  refs: ['lex:social.soapstone.text.en#basePhrases'],
+                  type: 'string',
                 },
               },
             },
@@ -1061,40 +1113,35 @@ export const schemaDict = {
                 type: 'array',
                 description: 'Character types that can be used in fill phrases',
                 items: {
-                  type: 'union',
-                  refs: ['lex:social.soapstone.text.en#characters'],
+                  type: 'string',
                 },
               },
               objects: {
                 type: 'array',
                 description: 'Objects that can be used in fill phrases',
                 items: {
-                  type: 'union',
-                  refs: ['lex:social.soapstone.text.en#objects'],
+                  type: 'string',
                 },
               },
               techniques: {
                 type: 'array',
                 description: 'Techniques that can be used in fill phrases',
                 items: {
-                  type: 'union',
-                  refs: ['lex:social.soapstone.text.en#techniques'],
+                  type: 'string',
                 },
               },
               actions: {
                 type: 'array',
                 description: 'Actions that can be used in fill phrases',
                 items: {
-                  type: 'union',
-                  refs: ['lex:social.soapstone.text.en#actions'],
+                  type: 'string',
                 },
               },
               geography: {
                 type: 'array',
                 description: 'Geography types that can be used in fill phrases',
                 items: {
-                  type: 'union',
-                  refs: ['lex:social.soapstone.text.en#geography'],
+                  type: 'string',
                 },
               },
               orientation: {
@@ -1102,24 +1149,21 @@ export const schemaDict = {
                 description:
                   'Orientation types that can be used in fill phrases',
                 items: {
-                  type: 'union',
-                  refs: ['lex:social.soapstone.text.en#orientation'],
+                  type: 'string',
                 },
               },
               bodyParts: {
                 type: 'array',
                 description: 'Body parts that can be used in fill phrases',
                 items: {
-                  type: 'union',
-                  refs: ['lex:social.soapstone.text.en#bodyParts'],
+                  type: 'string',
                 },
               },
               attributes: {
                 type: 'array',
                 description: 'Attributes that can be used in fill phrases',
                 items: {
-                  type: 'union',
-                  refs: ['lex:social.soapstone.text.en#attributes'],
+                  type: 'string',
                 },
               },
             },
@@ -1189,20 +1233,20 @@ export function validate(
 export const ids = {
   AppBskyActorProfile: 'app.bsky.actor.profile',
   ComAtprotoLabelDefs: 'com.atproto.label.defs',
-  ComAtprotoRepoStrongRef: 'com.atproto.repo.strongRef',
   ComAtprotoRepoDefs: 'com.atproto.repo.defs',
+  ComAtprotoRepoStrongRef: 'com.atproto.repo.strongRef',
+  SocialSoapstoneActorDefs: 'social.soapstone.actor.defs',
+  SocialSoapstoneFeedCreatePost: 'social.soapstone.feed.createPost',
+  SocialSoapstoneFeedCreateRating: 'social.soapstone.feed.createRating',
+  SocialSoapstoneFeedDefs: 'social.soapstone.feed.defs',
+  SocialSoapstoneFeedDeletePost: 'social.soapstone.feed.deletePost',
+  SocialSoapstoneFeedDeleteRating: 'social.soapstone.feed.deleteRating',
+  SocialSoapstoneFeedGetPosts: 'social.soapstone.feed.getPosts',
   SocialSoapstoneFeedPost: 'social.soapstone.feed.post',
   SocialSoapstoneFeedRating: 'social.soapstone.feed.rating',
-  SocialSoapstoneFeedDefs: 'social.soapstone.feed.defs',
-  SocialSoapstoneFeedGetPosts: 'social.soapstone.feed.getPosts',
-  SocialSoapstoneFeedDefsCreatePost: 'social.soapstone.feed.defs.createPost',
-  SocialSoapstoneFeedDeletePost: 'social.soapstone.feed.deletePost',
-  SocialSoapstoneFeedCreateRating: 'social.soapstone.feed.createRating',
-  SocialSoapstoneFeedDeleteRating: 'social.soapstone.feed.deleteRating',
   SocialSoapstoneLocationDefs: 'social.soapstone.location.defs',
   SocialSoapstoneMessageDefs: 'social.soapstone.message.defs',
-  SocialSoapstoneActorDefs: 'social.soapstone.actor.defs',
-  SocialSoapstoneTextEn: 'social.soapstone.text.en',
+  SocialSoapstoneTextEnDefs: 'social.soapstone.text.en.defs',
   SocialSoapstoneTextGetBasePhrases: 'social.soapstone.text.getBasePhrases',
   SocialSoapstoneTextGetFillPhrases: 'social.soapstone.text.getFillPhrases',
   XyzStatusphereStatus: 'xyz.statusphere.status',

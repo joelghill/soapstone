@@ -9,19 +9,19 @@
       "properties": {
         "base": {
           "type": "union",
-          "refs": ["social.soapstone.text.en#basePhrases"]
+          "refs": ["social.soapstone.text.en.defs#basePhrase"]
         },
         "fill": {
           "type": "union",
           "refs": [
-            "social.soapstone.text.en#characters",
-            "social.soapstone.text.en#objects",
-            "social.soapstone.text.en#techniques",
-            "social.soapstone.text.en#actions",
-            "social.soapstone.text.en#geography",
-            "social.soapstone.text.en#orientation",
-            "social.soapstone.text.en#bodyParts",
-            "social.soapstone.text.en#attributes"
+            "social.soapstone.text.en.defs#character",
+            "social.soapstone.text.en.defs#object",
+            "social.soapstone.text.en.defs#technique",
+            "social.soapstone.text.en.defs#action",
+            "social.soapstone.text.en.defs#geography",
+            "social.soapstone.text.en.defs#orientation",
+            "social.soapstone.text.en.defs#bodyPart",
+            "social.soapstone.text.en.defs#attribute"
           ]
         }
       }

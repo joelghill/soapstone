@@ -148,8 +148,14 @@ describe("SoapStoneLexiconController", () => {
     it("should create a post successfully", async () => {
       const message: Message = [
         {
-          base: "Be wary of ****",
-          fill: "Enemy",
+          base: {
+            $type: "social.soapstone.text.en.defs#basePhrases",
+            value: "Need ****",
+          },
+          fill: {
+            $type: "social.soapstone.text.en.defs#characters",
+            value: "Enemy",
+          },
         } as MessagePart,
       ];
       const location: Location = { uri: "geo:37.7749,-122.4194" };

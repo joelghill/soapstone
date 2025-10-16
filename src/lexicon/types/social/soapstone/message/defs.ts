@@ -9,7 +9,7 @@ import {
   is$typed as _is$typed,
   type OmitKey,
 } from '../../../../util'
-import type * as SocialSoapstoneTextEn from '../text/en.js'
+import type * as SocialSoapstoneTextEnDefs from '../text/en/defs.js'
 
 const is$typed = _is$typed,
   validate = _validate
@@ -18,16 +18,16 @@ const id = 'social.soapstone.message.defs'
 /** A message part consisting of a base phrase and a fill phrase. */
 export interface MessagePart {
   $type?: 'social.soapstone.message.defs#messagePart'
-  base: $Typed<SocialSoapstoneTextEn.BasePhrases> | { $type: string }
+  base: $Typed<SocialSoapstoneTextEnDefs.BasePhrase> | { $type: string }
   fill:
-    | $Typed<SocialSoapstoneTextEn.Characters>
-    | $Typed<SocialSoapstoneTextEn.Objects>
-    | $Typed<SocialSoapstoneTextEn.Techniques>
-    | $Typed<SocialSoapstoneTextEn.Actions>
-    | $Typed<SocialSoapstoneTextEn.Geography>
-    | $Typed<SocialSoapstoneTextEn.Orientation>
-    | $Typed<SocialSoapstoneTextEn.BodyParts>
-    | $Typed<SocialSoapstoneTextEn.Attributes>
+    | $Typed<SocialSoapstoneTextEnDefs.Character>
+    | $Typed<SocialSoapstoneTextEnDefs.Object>
+    | $Typed<SocialSoapstoneTextEnDefs.Technique>
+    | $Typed<SocialSoapstoneTextEnDefs.Action>
+    | $Typed<SocialSoapstoneTextEnDefs.Geography>
+    | $Typed<SocialSoapstoneTextEnDefs.Orientation>
+    | $Typed<SocialSoapstoneTextEnDefs.BodyPart>
+    | $Typed<SocialSoapstoneTextEnDefs.Attribute>
     | { $type: string }
 }
 

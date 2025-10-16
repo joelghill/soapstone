@@ -7,12 +7,10 @@ import { TID } from "@atproto/common";
 import { Agent } from "@atproto/api";
 import express from "express";
 import { getIronSession } from "iron-session";
-import type { AppContext } from "#/index";
+import type { AppContext } from "#/lib/server";
 import { home } from "#/pages/home";
 import { login } from "#/pages/login";
 import { env } from "#/lib/env";
-import { page } from "#/lib/view";
-import * as Status from "#/lexicon/types/xyz/statusphere/status";
 import * as Profile from "#/lexicon/types/app/bsky/actor/profile";
 
 type Session = { did: string };
@@ -67,10 +65,7 @@ export const createRouter = (ctx: AppContext) => {
   );
 
   // Static assets
-  router.use(
-    "/public",
-    express.static(path.join(__dirname, "pages", "public")),
-  );
+  router.use("/static", express.static(path.join(__dirname, "static")));
 
   // OAuth metadata
   router.get(
@@ -107,7 +102,7 @@ export const createRouter = (ctx: AppContext) => {
   router.get(
     "/login",
     handler(async (_req, res) => {
-      res.type("html").send(page(login({})));
+      login(res, {});
     }),
   );
 
@@ -118,7 +113,7 @@ export const createRouter = (ctx: AppContext) => {
       // Validate
       const handle = req.body?.handle;
       if (typeof handle !== "string" || !isValidHandle(handle)) {
-        res.type("html").send(page(login({ error: "invalid handle" })));
+        login(res, { error: "invalid handle" });
         return;
       }
 
@@ -130,16 +125,12 @@ export const createRouter = (ctx: AppContext) => {
         res.redirect(url.toString());
       } catch (err) {
         ctx.logger.error({ err }, "oauth authorize failed");
-        res.type("html").send(
-          page(
-            login({
-              error:
-                err instanceof OAuthResolverError
-                  ? err.message
-                  : "couldn't initiate login",
-            }),
-          ),
-        );
+        login(res, {
+          error:
+            err instanceof OAuthResolverError
+              ? err.message
+              : "couldn't initiate login",
+        });
       }
     }),
   );
@@ -174,7 +165,7 @@ export const createRouter = (ctx: AppContext) => {
 
       if (!agent) {
         // Serve the logged-out view
-        res.type("html").send(page(home({ posts, didHandleMap })));
+        home(res, { posts, didHandleMap });
         return;
       }
 
@@ -197,15 +188,11 @@ export const createRouter = (ctx: AppContext) => {
           : {};
 
       // Serve the logged-in view
-      res.type("html").send(
-        page(
-          home({
-            posts,
-            didHandleMap,
-            profile,
-          }),
-        ),
-      );
+      home(res, {
+        posts,
+        didHandleMap,
+        profile,
+      });
     }),
   );
   return router;

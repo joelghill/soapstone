@@ -13,7 +13,9 @@ module.exports = {
   setupFilesAfterEnv: ["<rootDir>/src/tests/setup.ts"],
   moduleNameMapper: {
     "^#/(.*)$": "<rootDir>/src/$1",
+    "^\\./(.+)\\.js$": "./$1",
   },
+  moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
   transform: {
     "^.+\\.ts$": [
       "ts-jest",
@@ -22,6 +24,7 @@ module.exports = {
       },
     ],
   },
+  transformIgnorePatterns: ["<rootDir>/node_modules/"],
   clearMocks: true,
   restoreMocks: true,
   resetMocks: true,

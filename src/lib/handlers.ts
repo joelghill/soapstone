@@ -1,23 +1,32 @@
-import { CatchallHandler } from "@atproto/xrpc-server";
+import {
+  MethodHandler,
+  MethodAuthVerifier,
+  Params,
+} from "@atproto/xrpc-server";
 import { ISoapStoneLexiconController } from "./controllers";
-import express from "express";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { getIronSession } from "iron-session";
 import { env } from "#/lib/env";
-import { OAuthClient } from "@atproto/oauth-client-node";
 import pino from "pino";
-import { Message } from "#/lexicon/types/social/soapstone/message/defs";
-import { Location } from "#/lexicon/types/social/soapstone/location/defs";
-import { AuthError } from "#/lib/errors";
+import * as GetPosts from "#/lexicon/types/social/soapstone/feed/getPosts";
+import * as CreatePost from "#/lexicon/types/social/soapstone/feed/createPost";
 
-type Session = { did: string };
+export type Session = { did: string };
+export type SessionCredentials = { credentials: Session };
 
-//Method Ids handled by this class
-const METHOD_IDS = [
-  "social.soapstone.feed.createPost",
-  "social.soapstone.feed.getPosts",
-  "social.soapstone.feed.deletePost",
-];
+export type GetPostsHandler = MethodHandler<
+  SessionCredentials,
+  GetPosts.QueryParams,
+  GetPosts.HandlerInput,
+  GetPosts.HandlerOutput
+>;
+
+export type CreatePostHandler = MethodHandler<
+  SessionCredentials,
+  CreatePost.QueryParams,
+  CreatePost.HandlerInput,
+  CreatePost.HandlerOutput
+>;
 
 export class SoapStoneLexiconHandler {
   constructor(
@@ -30,60 +39,64 @@ export class SoapStoneLexiconHandler {
     req: IncomingMessage,
     res: ServerResponse<IncomingMessage>,
   ) => {
-    const session = await getIronSession<Session>(req, res, {
-      cookieName: "sid",
-      password: env.COOKIE_SECRET,
-    });
-    if (!session.did) return null;
-    return session;
+    try {
+      const session = await getIronSession<Session>(req, res, {
+        cookieName: "sid",
+        password: env.COOKIE_SECRET,
+      });
+      if (!session.did) return null;
+      return session;
+    } catch (error) {
+      this.logger.error({ error }, "Error getting session");
+      return null;
+    }
   };
 
-  /**
-   * Handles all catchall requests for the SoapStone service.
-   * @param req
-   * @param res
-   */
-  handleCatchall: CatchallHandler = async (
-    req: express.Request,
-    res: express.Response,
-    next: express.NextFunction,
-  ) => {
-    try {
-      const controller: ISoapStoneLexiconController = this.controller;
-      const method = req.params.methodId as string;
+  verifyAuth: MethodAuthVerifier<SessionCredentials, Params> = async (ctx) => {
+    const session = await this.getSession(ctx.req, ctx.res);
+    if (!session) {
+      return { status: 401, message: "Unauthorized" };
+    }
+    return { credentials: { did: session.did } };
+  };
 
-      if (!METHOD_IDS.includes(method)) {
-        return next(new Error(`Method ${method} not implemented`));
-      } else if (method === "social.soapstone.feed.createPost") {
-        const session = await this.getSession(req, res);
-        if (!session) {
-          return res.status(401).send("Unauthorized");
-        }
-        const { message, location } = req.body as {
-          message: Message;
-          location: Location;
-        };
-        const response = await controller.createPost(
-          session.did,
-          message,
-          location,
-        );
-        return res.status(201).json(response);
-      } else if (method === "social.soapstone.feed.getPosts") {
-        // Parse query parameters to get location and radius
-        const { location, radius } = req.query;
-        const response = await controller.getPostsByLocation(
-          location as string,
-          radius ? parseFloat(radius as string) : undefined,
-        );
-        return res.status(200).json({ posts: response });
-      }
-    } catch (err: unknown) {
-      this.logger.error({ err }, "Error handling catchall request");
-      if (err instanceof AuthError) {
-        return res.status(401).send("Unauthorized");
-      }
-      return res.status(500).send("Internal Server Error");
+  handleGetPosts: GetPostsHandler = async (ctx) => {
+    try {
+      const response = await this.controller.getPostsByLocation(
+        ctx.params.location,
+        ctx.params.radius,
+      );
+      return {
+        encoding: "application/json",
+        body: { posts: response },
+      } as GetPosts.HandlerSuccess;
+    } catch (err) {
+      this.logger.error({ err }, "Error fetching posts");
+      return {
+        status: 500,
+        message: err instanceof Error ? err.message : "Internal Server Error",
+      };
+    }
+  };
+
+  handleCreatePost: CreatePostHandler = async (ctx) => {
+    const { message, location } = ctx.input.body;
+    try {
+      const response = await this.controller.createPost(
+        ctx.auth.credentials.did,
+        message,
+        location,
+      );
+      return {
+        encoding: "application/json",
+        body: response,
+      } as CreatePost.HandlerSuccess;
+    } catch (err) {
+      this.logger.error({ err }, "Error creating post");
+      return {
+        status: 500,
+        message: err instanceof Error ? err.message : "Internal Server Error",
+      };
     }
   };
 }

@@ -2,18 +2,19 @@
  * GENERATED CODE - DO NOT MODIFY
  */
 import {
-  createServer as createXrpcServer,
-  Server as XrpcServer,
+  type Auth,
   type Options as XrpcOptions,
-  type AuthVerifier,
-  type StreamAuthVerifier,
+  Server as XrpcServer,
+  type StreamConfigOrHandler,
+  type MethodConfigOrHandler,
+  createServer as createXrpcServer,
 } from '@atproto/xrpc-server'
 import { schemas } from './lexicons.js'
-import * as SocialSoapstoneFeedGetPosts from './types/social/soapstone/feed/getPosts.js'
-import * as SocialSoapstoneFeedDefsCreatePost from './types/social/soapstone/feed/defs/createPost.js'
-import * as SocialSoapstoneFeedDeletePost from './types/social/soapstone/feed/deletePost.js'
+import * as SocialSoapstoneFeedCreatePost from './types/social/soapstone/feed/createPost.js'
 import * as SocialSoapstoneFeedCreateRating from './types/social/soapstone/feed/createRating.js'
+import * as SocialSoapstoneFeedDeletePost from './types/social/soapstone/feed/deletePost.js'
 import * as SocialSoapstoneFeedDeleteRating from './types/social/soapstone/feed/deleteRating.js'
+import * as SocialSoapstoneFeedGetPosts from './types/social/soapstone/feed/getPosts.js'
 import * as SocialSoapstoneTextGetBasePhrases from './types/social/soapstone/text/getBasePhrases.js'
 import * as SocialSoapstoneTextGetFillPhrases from './types/social/soapstone/text/getFillPhrases.js'
 
@@ -117,73 +118,68 @@ export class SocialSoapstoneNS {
 
 export class SocialSoapstoneFeedNS {
   _server: Server
-  defs: SocialSoapstoneFeedDefsNS
 
   constructor(server: Server) {
     this._server = server
-    this.defs = new SocialSoapstoneFeedDefsNS(server)
   }
 
-  getPosts<AV extends AuthVerifier>(
-    cfg: ConfigOf<
-      AV,
-      SocialSoapstoneFeedGetPosts.Handler<ExtractAuth<AV>>,
-      SocialSoapstoneFeedGetPosts.HandlerReqCtx<ExtractAuth<AV>>
+  createPost<A extends Auth = void>(
+    cfg: MethodConfigOrHandler<
+      A,
+      SocialSoapstoneFeedCreatePost.QueryParams,
+      SocialSoapstoneFeedCreatePost.HandlerInput,
+      SocialSoapstoneFeedCreatePost.HandlerOutput
     >,
   ) {
-    const nsid = 'social.soapstone.feed.getPosts' // @ts-ignore
+    const nsid = 'social.soapstone.feed.createPost' // @ts-ignore
     return this._server.xrpc.method(nsid, cfg)
   }
 
-  deletePost<AV extends AuthVerifier>(
-    cfg: ConfigOf<
-      AV,
-      SocialSoapstoneFeedDeletePost.Handler<ExtractAuth<AV>>,
-      SocialSoapstoneFeedDeletePost.HandlerReqCtx<ExtractAuth<AV>>
-    >,
-  ) {
-    const nsid = 'social.soapstone.feed.deletePost' // @ts-ignore
-    return this._server.xrpc.method(nsid, cfg)
-  }
-
-  createRating<AV extends AuthVerifier>(
-    cfg: ConfigOf<
-      AV,
-      SocialSoapstoneFeedCreateRating.Handler<ExtractAuth<AV>>,
-      SocialSoapstoneFeedCreateRating.HandlerReqCtx<ExtractAuth<AV>>
+  createRating<A extends Auth = void>(
+    cfg: MethodConfigOrHandler<
+      A,
+      SocialSoapstoneFeedCreateRating.QueryParams,
+      SocialSoapstoneFeedCreateRating.HandlerInput,
+      SocialSoapstoneFeedCreateRating.HandlerOutput
     >,
   ) {
     const nsid = 'social.soapstone.feed.createRating' // @ts-ignore
     return this._server.xrpc.method(nsid, cfg)
   }
 
-  deleteRating<AV extends AuthVerifier>(
-    cfg: ConfigOf<
-      AV,
-      SocialSoapstoneFeedDeleteRating.Handler<ExtractAuth<AV>>,
-      SocialSoapstoneFeedDeleteRating.HandlerReqCtx<ExtractAuth<AV>>
+  deletePost<A extends Auth = void>(
+    cfg: MethodConfigOrHandler<
+      A,
+      SocialSoapstoneFeedDeletePost.QueryParams,
+      SocialSoapstoneFeedDeletePost.HandlerInput,
+      SocialSoapstoneFeedDeletePost.HandlerOutput
+    >,
+  ) {
+    const nsid = 'social.soapstone.feed.deletePost' // @ts-ignore
+    return this._server.xrpc.method(nsid, cfg)
+  }
+
+  deleteRating<A extends Auth = void>(
+    cfg: MethodConfigOrHandler<
+      A,
+      SocialSoapstoneFeedDeleteRating.QueryParams,
+      SocialSoapstoneFeedDeleteRating.HandlerInput,
+      SocialSoapstoneFeedDeleteRating.HandlerOutput
     >,
   ) {
     const nsid = 'social.soapstone.feed.deleteRating' // @ts-ignore
     return this._server.xrpc.method(nsid, cfg)
   }
-}
 
-export class SocialSoapstoneFeedDefsNS {
-  _server: Server
-
-  constructor(server: Server) {
-    this._server = server
-  }
-
-  createPost<AV extends AuthVerifier>(
-    cfg: ConfigOf<
-      AV,
-      SocialSoapstoneFeedDefsCreatePost.Handler<ExtractAuth<AV>>,
-      SocialSoapstoneFeedDefsCreatePost.HandlerReqCtx<ExtractAuth<AV>>
+  getPosts<A extends Auth = void>(
+    cfg: MethodConfigOrHandler<
+      A,
+      SocialSoapstoneFeedGetPosts.QueryParams,
+      SocialSoapstoneFeedGetPosts.HandlerInput,
+      SocialSoapstoneFeedGetPosts.HandlerOutput
     >,
   ) {
-    const nsid = 'social.soapstone.feed.defs.createPost' // @ts-ignore
+    const nsid = 'social.soapstone.feed.getPosts' // @ts-ignore
     return this._server.xrpc.method(nsid, cfg)
   }
 }
@@ -195,22 +191,24 @@ export class SocialSoapstoneTextNS {
     this._server = server
   }
 
-  getBasePhrases<AV extends AuthVerifier>(
-    cfg: ConfigOf<
-      AV,
-      SocialSoapstoneTextGetBasePhrases.Handler<ExtractAuth<AV>>,
-      SocialSoapstoneTextGetBasePhrases.HandlerReqCtx<ExtractAuth<AV>>
+  getBasePhrases<A extends Auth = void>(
+    cfg: MethodConfigOrHandler<
+      A,
+      SocialSoapstoneTextGetBasePhrases.QueryParams,
+      SocialSoapstoneTextGetBasePhrases.HandlerInput,
+      SocialSoapstoneTextGetBasePhrases.HandlerOutput
     >,
   ) {
     const nsid = 'social.soapstone.text.getBasePhrases' // @ts-ignore
     return this._server.xrpc.method(nsid, cfg)
   }
 
-  getFillPhrases<AV extends AuthVerifier>(
-    cfg: ConfigOf<
-      AV,
-      SocialSoapstoneTextGetFillPhrases.Handler<ExtractAuth<AV>>,
-      SocialSoapstoneTextGetFillPhrases.HandlerReqCtx<ExtractAuth<AV>>
+  getFillPhrases<A extends Auth = void>(
+    cfg: MethodConfigOrHandler<
+      A,
+      SocialSoapstoneTextGetFillPhrases.QueryParams,
+      SocialSoapstoneTextGetFillPhrases.HandlerInput,
+      SocialSoapstoneTextGetFillPhrases.HandlerOutput
     >,
   ) {
     const nsid = 'social.soapstone.text.getFillPhrases' // @ts-ignore
@@ -235,29 +233,3 @@ export class XyzStatusphereNS {
     this._server = server
   }
 }
-
-type SharedRateLimitOpts<T> = {
-  name: string
-  calcKey?: (ctx: T) => string | null
-  calcPoints?: (ctx: T) => number
-}
-type RouteRateLimitOpts<T> = {
-  durationMs: number
-  points: number
-  calcKey?: (ctx: T) => string | null
-  calcPoints?: (ctx: T) => number
-}
-type HandlerOpts = { blobLimit?: number }
-type HandlerRateLimitOpts<T> = SharedRateLimitOpts<T> | RouteRateLimitOpts<T>
-type ConfigOf<Auth, Handler, ReqCtx> =
-  | Handler
-  | {
-      auth?: Auth
-      opts?: HandlerOpts
-      rateLimit?: HandlerRateLimitOpts<ReqCtx> | HandlerRateLimitOpts<ReqCtx>[]
-      handler: Handler
-    }
-type ExtractAuth<AV extends AuthVerifier | StreamAuthVerifier> = Extract<
-  Awaited<ReturnType<AV>>,
-  { credentials: unknown }
->

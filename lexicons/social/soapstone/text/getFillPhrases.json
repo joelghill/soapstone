@@ -34,64 +34,56 @@
               "type": "array",
               "description": "Character types that can be used in fill phrases",
               "items": {
-                "type": "union",
-                "refs": ["social.soapstone.text.en#characters"]
+                "type": "string"
               }
             },
             "objects": {
               "type": "array",
               "description": "Objects that can be used in fill phrases",
               "items": {
-                "type": "union",
-                "refs": ["social.soapstone.text.en#objects"]
+                "type": "string"
               }
             },
             "techniques": {
               "type": "array",
               "description": "Techniques that can be used in fill phrases",
               "items": {
-                "type": "union",
-                "refs": ["social.soapstone.text.en#techniques"]
+                "type": "string"
               }
             },
             "actions": {
               "type": "array",
               "description": "Actions that can be used in fill phrases",
               "items": {
-                "type": "union",
-                "refs": ["social.soapstone.text.en#actions"]
+                "type": "string"
               }
             },
             "geography": {
               "type": "array",
               "description": "Geography types that can be used in fill phrases",
               "items": {
-                "type": "union",
-                "refs": ["social.soapstone.text.en#geography"]
+                "type": "string"
               }
             },
             "orientation": {
               "type": "array",
               "description": "Orientation types that can be used in fill phrases",
               "items": {
-                "type": "union",
-                "refs": ["social.soapstone.text.en#orientation"]
+                "type": "string"
               }
             },
             "bodyParts": {
               "type": "array",
               "description": "Body parts that can be used in fill phrases",
               "items": {
-                "type": "union",
-                "refs": ["social.soapstone.text.en#bodyParts"]
+                "type": "string"
               }
             },
             "attributes": {
               "type": "array",
               "description": "Attributes that can be used in fill phrases",
               "items": {
-                "type": "union",
-                "refs": ["social.soapstone.text.en#attributes"]
+                "type": "string"
               }
             }
           }

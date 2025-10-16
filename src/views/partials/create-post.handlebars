@@ -1,0 +1,340 @@
+<div class="card bg-dark border-secondary mb-4">
+    <div class="card-header bg-transparent border-secondary">
+        <h4 class="card-title mb-0 text-primary">
+            <i class="bi bi-pencil-square"></i>
+            Create New Message
+        </h4>
+    </div>
+    <div class="card-body">
+        <form id="postForm">
+            {{#if lexicon}}
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="basePhrase" class="form-label fw-semibold">Base Phrase</label>
+                    <select name="basePhrase" id="basePhrase" class="form-select bg-dark text-light border-secondary" required>
+                        <option value="">Select a base phrase...</option>
+                        {{#if lexicon}}
+                            {{#each lexicon.basePhrases}}
+                                <option value="{{this}}">{{this}}</option>
+                            {{/each}}
+                        {{/if}}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="fillCategory" class="form-label fw-semibold">Fill Category</label>
+                    <select name="fillCategory" id="fillCategory" class="form-select bg-dark text-light border-secondary" required>
+                        <option value="">Select category...</option>
+                        <option value="characters">Characters</option>
+                        <option value="objects">Objects</option>
+                        <option value="techniques">Techniques</option>
+                        <option value="actions">Actions</option>
+                        <option value="geography">Geography</option>
+                        <option value="orientation">Orientation</option>
+                        <option value="bodyParts">Body Parts</option>
+                        <option value="attributes">Attributes</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-12">
+                    <label for="fillPhrase" class="form-label fw-semibold">Fill Phrase</label>
+                    <select name="fillPhrase" id="fillPhrase" class="form-select bg-dark text-light border-secondary" required disabled>
+                        <option value="">Select a category first...</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Message Preview</label>
+                <div id="messagePreview" class="p-3 bg-secondary bg-opacity-25 border border-secondary rounded">
+                    <em class="text-muted">Select base phrase and fill phrase to see preview</em>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="useCurrentLocation" checked>
+                    <label class="form-check-label" for="useCurrentLocation">
+                        Use current location
+                    </label>
+                </div>
+                <small class="text-muted">If disabled or unavailable, a random location will be used</small>
+            </div>
+            
+            <div id="statusMessage" class="alert d-none" role="alert"></div>
+            
+            <div class="d-flex justify-content-between align-items-center">
+                <button type="submit" class="btn btn-primary px-4" id="submitBtn">
+                    <i class="bi bi-send"></i>
+                    Post Message
+                </button>
+                <button type="button" class="btn btn-outline-secondary" id="resetForm">
+                    <i class="bi bi-arrow-clockwise"></i>
+                    Reset
+                </button>
+            </div>
+            {{else}}
+            <div class="alert alert-warning" role="alert">
+                <strong>Error:</strong> Lexicon data not available. Please refresh the page.
+                <br><small>Debug: lexicon={{#if lexicon}}present{{else}}missing{{/if}}, lexiconJson={{#if lexiconJson}}present{{else}}missing{{/if}}</small>
+            </div>
+            {{/if}}
+        </form>
+    </div>
+</div>
+
+<script>
+// Wait for DOM to be ready
+document.addEventListener('DOMContentLoaded', function() {
+
+// Lexicon data passed from server
+const lexiconData = {{{lexiconJson}}};
+
+// Debug: Log lexicon data to console
+console.log('Lexicon data received:', lexiconData);
+
+// Fill phrase categories mapping
+const fillPhraseCategories = {
+    characters: lexiconData?.characters || [],
+    objects: lexiconData?.objects || [],
+    techniques: lexiconData?.techniques || [],
+    actions: lexiconData?.actions || [],
+    geography: lexiconData?.geography || [],
+    orientation: lexiconData?.orientation || [],
+    bodyParts: lexiconData?.bodyParts || [],
+    attributes: lexiconData?.attributes || []
+};
+
+// Debug: Log categories mapping
+console.log('Fill phrase categories:', fillPhraseCategories);
+
+// DOM elements
+const fillCategorySelect = document.getElementById('fillCategory');
+const fillPhraseSelect = document.getElementById('fillPhrase');
+const basePhraseSelect = document.getElementById('basePhrase');
+const messagePreview = document.getElementById('messagePreview');
+const postForm = document.getElementById('postForm');
+const resetButton = document.getElementById('resetForm');
+const useLocationCheckbox = document.getElementById('useCurrentLocation');
+const submitBtn = document.getElementById('submitBtn');
+const statusMessage = document.getElementById('statusMessage');
+
+// Check if form elements are available
+if (!fillCategorySelect || !fillPhraseSelect || !basePhraseSelect || !messagePreview || !postForm) {
+    console.warn('Post form elements not found - lexicon data may not be available');
+} else {
+
+// Location storage
+let currentLocation = null;
+
+// Show status message
+function showStatus(message, isError = false) {
+    statusMessage.className = `alert ${isError ? 'alert-danger' : 'alert-success'}`;
+    statusMessage.textContent = message;
+    statusMessage.classList.remove('d-none');
+    setTimeout(() => {
+        statusMessage.classList.add('d-none');
+    }, 5000);
+}
+
+// Update fill phrases when category changes
+fillCategorySelect.addEventListener('change', function() {
+    const category = this.value;
+    console.log('Category selected:', category);
+    console.log('Available phrases for category:', fillPhraseCategories[category]);
+    
+    fillPhraseSelect.innerHTML = '<option value="">Select fill phrase...</option>';
+    
+    if (category && fillPhraseCategories[category]) {
+        fillPhraseSelect.disabled = false;
+        fillPhraseCategories[category].forEach(phrase => {
+            const option = document.createElement('option');
+            option.value = phrase;
+            option.textContent = phrase;
+            fillPhraseSelect.appendChild(option);
+        });
+        console.log('Added', fillPhraseCategories[category].length, 'phrases to select');
+    } else {
+        fillPhraseSelect.disabled = true;
+        console.log('No phrases found for category or category is empty');
+    }
+    updatePreview();
+});
+
+// Update preview when selections change
+function updatePreview() {
+    const basePhrase = basePhraseSelect.value;
+    const fillPhrase = fillPhraseSelect.value;
+    
+    console.log('UpdatePreview called - Base:', basePhrase, 'Fill:', fillPhrase);
+    
+    if (basePhrase && fillPhrase) {
+        let preview;
+        if (basePhrase.includes('****')) {
+            preview = basePhrase.replace('****', fillPhrase);
+        } else {
+            preview = `${basePhrase} ${fillPhrase}`;
+        }
+        messagePreview.innerHTML = `<strong>"${preview}"</strong>`;
+        console.log('Preview updated to:', preview);
+    } else if (basePhrase) {
+        messagePreview.innerHTML = `<em class="text-muted">"${basePhrase}" - Select fill phrase to complete</em>`;
+        console.log('Showing base phrase only preview');
+    } else {
+        messagePreview.innerHTML = '<em class="text-muted">Select base phrase and fill phrase to see preview</em>';
+        console.log('Showing default preview message');
+    }
+}
+
+basePhraseSelect.addEventListener('change', function() {
+    console.log('Base phrase changed to:', this.value);
+    updatePreview();
+});
+fillPhraseSelect.addEventListener('change', function() {
+    console.log('Fill phrase changed to:', this.value);
+    updatePreview();
+});
+
+console.log('Event listeners attached successfully');
+
+// Reset form
+resetButton.addEventListener('click', function() {
+    postForm.reset();
+    fillPhraseSelect.disabled = true;
+    fillPhraseSelect.innerHTML = '<option value="">Select a category first...</option>';
+    updatePreview();
+});
+
+// Geolocation handling
+function getRandomLocation() {
+    // Generate random coordinates within reasonable bounds
+    const latitude = (Math.random() * 180 - 90).toFixed(6);
+    const longitude = (Math.random() * 360 - 180).toFixed(6);
+    
+    currentLocation = {
+        uri: `geo:${latitude},${longitude}`
+    };
+}
+
+function getCurrentLocation() {
+    return new Promise((resolve, reject) => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    currentLocation = {
+                        uri: `geo:${position.coords.latitude},${position.coords.longitude}`
+                    };
+                    resolve(currentLocation);
+                },
+                function(error) {
+                    console.warn('Geolocation failed, using random location:', error);
+                    getRandomLocation();
+                    resolve(currentLocation);
+                }
+            );
+        } else {
+            console.warn('Geolocation not supported, using random location');
+            getRandomLocation();
+            resolve(currentLocation);
+        }
+    });
+}
+
+// Handle form submission
+postForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const basePhrase = basePhraseSelect.value;
+    const fillPhrase = fillPhraseSelect.value;
+    const fillCategory = fillCategorySelect.value;
+    
+    if (!basePhrase || !fillPhrase) {
+        showStatus('Please select both base phrase and fill phrase', true);
+        return;
+    }
+    
+    // Disable submit button
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Posting...';
+    
+    try {
+        // Get location
+        if (useLocationCheckbox.checked) {
+            await getCurrentLocation();
+        } else {
+            getRandomLocation();
+        }
+        
+        // Map category to lexicon type
+        const fillTypeMap = {
+            'characters': 'social.soapstone.text.en#characters',
+            'objects': 'social.soapstone.text.en#objects',
+            'techniques': 'social.soapstone.text.en#techniques',
+            'actions': 'social.soapstone.text.en#actions',
+            'geography': 'social.soapstone.text.en#geography',
+            'orientation': 'social.soapstone.text.en#orientation',
+            'bodyParts': 'social.soapstone.text.en#bodyParts',
+            'attributes': 'social.soapstone.text.en#attributes'
+        };
+        
+        // Prepare request body according to lexicon schema
+        const requestBody = {
+          message: [
+              {
+                  base: {
+                      $type: 'social.soapstone.text.en#basePhrases',
+                      value: basePhrase
+                  },
+                  fill: {
+                      $type: fillTypeMap[fillCategory] || 'social.soapstone.text.en#objects',
+                      value: fillPhrase
+                  }
+              }
+          ],
+          location: {
+              uri: currentLocation.uri
+          }
+        };
+        
+        // Submit to XRPC endpoint
+        const response = await fetch('/xrpc/social.soapstone.feed.createPost', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody)
+        });
+        
+        if (response.ok) {
+            showStatus('Message posted successfully!');
+            postForm.reset();
+            fillPhraseSelect.disabled = true;
+            fillPhraseSelect.innerHTML = '<option value="">Select a category first...</option>';
+            updatePreview();
+            
+            // Reload page to show new post
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            const errorData = await response.text();
+            showStatus(`Failed to post message: ${errorData}`, true);
+        }
+    } catch (error) {
+        console.error('Error posting message:', error);
+        showStatus('An error occurred while posting the message', true);
+    } finally {
+        // Re-enable submit button
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="bi bi-send"></i> Post Message';
+    }
+});
+
+// Initialize with random location
+getRandomLocation();
+
+} // End of form elements check
+
+}); // End of DOMContentLoaded
+</script>

@@ -1,0 +1,164 @@
+/* Custom Font Faces */
+@font-face {
+  font-family: 'Optimus Princeps';
+  src: url('../fonts/optimusprinceps/OptimusPrinceps.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Optimus Princeps';
+  src: url('../fonts/optimusprinceps/OptimusPrincepsSemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Honoka Mincho';
+  src: url('../fonts/honoka-mincho/honokamin.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Bootstrap Dark Theme with Dark Amber Palette */
+:root {
+  /* Base dark background colors */
+  --bs-body-bg: #0f0a07;
+  --bs-body-color: #f4f1ec;
+  --bs-border-color: #2a1f18;
+  --bs-secondary-bg: #1a1108;
+  
+  /* Dark amber primary colors */
+  --bs-primary: #feb204;
+  --bs-primary-rgb: 254, 178, 4;
+  --bs-primary-bg-subtle: #2a1f0a;
+  --bs-primary-border-subtle: #4a3515;
+  --bs-primary-text-emphasis: #ffd22b;
+  
+  /* Secondary colors with amber undertones */
+  --bs-secondary: #3d2f21;
+  --bs-secondary-rgb: 61, 47, 33;
+  --bs-secondary-bg-subtle: #1a1108;
+  --bs-secondary-border-subtle: #2a1f18;
+  --bs-secondary-text-emphasis: #8b7355;
+  
+  /* Success colors using warm greens */
+  --bs-success: #4a5d23;
+  --bs-success-rgb: 74, 93, 35;
+  --bs-success-bg-subtle: #1a1f0a;
+  --bs-success-border-subtle: #2a2f15;
+  --bs-success-text-emphasis: #6b8632;
+  
+  /* Info colors using cool amber tones */
+  --bs-info: #8b6914;
+  --bs-info-rgb: 139, 105, 20;
+  --bs-info-bg-subtle: #1f1805;
+  --bs-info-border-subtle: #3f300a;
+  --bs-info-text-emphasis: #b8911c;
+  
+  /* Warning colors using darker amber tones */
+  --bs-warning: #ff8503;
+  --bs-warning-rgb: 255, 133, 3;
+  --bs-warning-bg-subtle: #2a1605;
+  --bs-warning-border-subtle: #4a2c0a;
+  --bs-warning-text-emphasis: #feb204;
+  
+  /* Danger colors using deep red-amber */
+  --bs-danger: #d53600;
+  --bs-danger-rgb: 213, 54, 0;
+  --bs-danger-bg-subtle: #2a0b00;
+  --bs-danger-border-subtle: #4a1600;
+  --bs-danger-text-emphasis: #ff6b2b;
+  
+  /* Light and dark theme colors */
+  --bs-light: #8b7355;
+  --bs-light-rgb: 139, 115, 85;
+  --bs-light-bg-subtle: #1f1a15;
+  --bs-light-border-subtle: #2a1f18;
+  --bs-light-text-emphasis: #d4c4a0;
+  
+  --bs-dark: #1a1108;
+  --bs-dark-rgb: 26, 17, 8;
+  --bs-dark-bg-subtle: #0f0a07;
+  --bs-dark-border-subtle: #2a1f18;
+  --bs-dark-text-emphasis: #3d2f21;
+}
+
+/* Typography using custom fonts */
+body {
+  font-family: 'Honoka Mincho', 'Georgia', 'Times New Roman', serif;
+}
+
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+  font-family: 'Optimus Princeps', 'Georgia', serif;
+  font-weight: 600;
+}
+
+/* Enhanced visual effects for dark amber theme */
+.card {
+  box-shadow: 0 2px 8px rgba(112, 14, 1, 0.3);
+}
+
+/* Button styling to ensure amber primary colors */
+.btn-primary {
+  background-color: var(--bs-primary);
+  border-color: var(--bs-primary);
+  color: #0f0a07;
+  box-shadow: 0 2px 6px rgba(254, 178, 4, 0.3);
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:focus-visible {
+  background-color: var(--bs-warning);
+  border-color: var(--bs-warning);
+  color: #0f0a07;
+  box-shadow: 0 4px 12px rgba(254, 178, 4, 0.4);
+}
+
+.btn-primary:active,
+.btn-primary.active,
+.btn-primary:active:focus {
+  background-color: #d59900 !important;
+  border-color: #d59900 !important;
+  color: #0f0a07 !important;
+  box-shadow: 0 2px 4px rgba(213, 153, 0, 0.5) !important;
+}
+
+.btn-primary:focus {
+  box-shadow: 0 0 0 0.25rem rgba(254, 178, 4, 0.5) !important;
+}
+
+.btn-outline-primary {
+  color: var(--bs-primary);
+  border-color: var(--bs-primary);
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus {
+  background-color: var(--bs-primary);
+  border-color: var(--bs-primary);
+  color: #0f0a07;
+}
+
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bs-body-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bs-primary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--bs-primary-text-emphasis);
+}

@@ -52,9 +52,9 @@ COPY --from=build /app/migrations ./migrations
 COPY --from=build /app/lexicons ./lexicons
 COPY --from=build /app/knexfile.js ./
 
-# Copy views and static files to the correct locations relative to dist
-COPY --from=build /app/dist/views ./dist/views
-COPY --from=build /app/dist/static ./dist/static
+# Copy views and static files to the locations expected by the compiled code
+COPY --from=build /app/dist/views ./views
+COPY --from=build /app/dist/static ./static
 
 # Change ownership to app user
 RUN chown -R nextjs:nodejs /app

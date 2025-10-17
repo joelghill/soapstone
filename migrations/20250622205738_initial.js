@@ -6,18 +6,6 @@ const postgis = require("knex-postgis");
 exports.up = async function (knex) {
   const st = postgis(knex);
   return Promise.all([
-    // Status table
-    knex.schema.createTable("status", (table) => {
-      table.string("uri").primary();
-      table.string("author_did").notNullable();
-      table.string("status").notNullable();
-      table.timestamp("created_at").notNullable();
-      table.timestamp("indexed_at").notNullable();
-
-      table.index(["author_did"]);
-      table.index(["created_at"]);
-    }),
-
     // Post table
     knex.schema.createTable("post", (table) => {
       table.string("uri").primary();
@@ -76,6 +64,5 @@ exports.down = async function (knex) {
     knex.schema.dropTableIfExists("auth_state"),
     knex.schema.dropTableIfExists("auth_session"),
     knex.schema.dropTableIfExists("post"),
-    knex.schema.dropTableIfExists("status"),
   ]);
 };

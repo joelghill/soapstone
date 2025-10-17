@@ -27,14 +27,12 @@ export class Server {
   app: AppNS
   com: ComNS
   social: SocialNS
-  xyz: XyzNS
 
   constructor(options?: XrpcOptions) {
     this.xrpc = createXrpcServer(schemas, options)
     this.app = new AppNS(this)
     this.com = new ComNS(this)
     this.social = new SocialNS(this)
-    this.xyz = new XyzNS(this)
   }
 }
 
@@ -213,23 +211,5 @@ export class SocialSoapstoneTextNS {
   ) {
     const nsid = 'social.soapstone.text.getFillPhrases' // @ts-ignore
     return this._server.xrpc.method(nsid, cfg)
-  }
-}
-
-export class XyzNS {
-  _server: Server
-  statusphere: XyzStatusphereNS
-
-  constructor(server: Server) {
-    this._server = server
-    this.statusphere = new XyzStatusphereNS(server)
-  }
-}
-
-export class XyzStatusphereNS {
-  _server: Server
-
-  constructor(server: Server) {
-    this._server = server
   }
 }

@@ -1172,32 +1172,6 @@ export const schemaDict = {
       },
     },
   },
-  XyzStatusphereStatus: {
-    lexicon: 1,
-    id: 'xyz.statusphere.status',
-    defs: {
-      main: {
-        type: 'record',
-        key: 'tid',
-        record: {
-          type: 'object',
-          required: ['status', 'createdAt'],
-          properties: {
-            status: {
-              type: 'string',
-              minLength: 1,
-              maxGraphemes: 1,
-              maxLength: 32,
-            },
-            createdAt: {
-              type: 'string',
-              format: 'datetime',
-            },
-          },
-        },
-      },
-    },
-  },
 } as const satisfies Record<string, LexiconDoc>
 export const schemas = Object.values(schemaDict) satisfies LexiconDoc[]
 export const lexicons: Lexicons = new Lexicons(schemas)
@@ -1249,5 +1223,4 @@ export const ids = {
   SocialSoapstoneTextEnDefs: 'social.soapstone.text.en.defs',
   SocialSoapstoneTextGetBasePhrases: 'social.soapstone.text.getBasePhrases',
   SocialSoapstoneTextGetFillPhrases: 'social.soapstone.text.getFillPhrases',
-  XyzStatusphereStatus: 'xyz.statusphere.status',
 } as const

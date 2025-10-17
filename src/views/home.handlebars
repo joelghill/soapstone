@@ -47,7 +47,10 @@
                                                 </time>
                                                 {{#if this.location}}
                                                     <span class="d-flex align-items-center gap-1">
-                                                        <i class="bi bi-geo-alt-fill"></i>📍 {{formatLocation this.location}}
+                                                        <i class="bi bi-geo-alt-fill"></i>
+                                                        <a href="{{this.location_text}}" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
+                                                            📍 {{this.location_text}}
+                                                        </a>
                                                     </span>
                                                 {{/if}}
                                             </div>

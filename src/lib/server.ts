@@ -143,8 +143,8 @@ export class SoapStoneServer {
       engine({
         extname: ".handlebars",
         defaultLayout: "layout",
-        layoutsDir: path.join(__dirname, "views"),
-        partialsDir: path.join(__dirname, "views/partials"),
+        layoutsDir: path.join(__dirname, "../views"),
+        partialsDir: path.join(__dirname, "../views/partials"),
         helpers: {
           toBskyLink,
           formatDate,
@@ -153,7 +153,7 @@ export class SoapStoneServer {
       }),
     );
     app.set("view engine", "handlebars");
-    app.set("views", path.join(__dirname, "views"));
+    app.set("views", path.join(__dirname, "../views"));
 
     return new SoapStoneServer(app, ctx);
   }

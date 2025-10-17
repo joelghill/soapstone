@@ -1,4 +1,9 @@
-import { Message } from "#/lexicon/types/social/soapstone/message/defs";
+import {
+  Message,
+  MessagePart,
+} from "#/lexicon/types/social/soapstone/message/defs";
+import { BasePhrase } from "#/lexicon/types/social/soapstone/text/en/defs";
+import { $Typed } from "#/lexicon/util";
 
 /**
  * Generates message text from Message object parts.
@@ -12,14 +17,8 @@ export function createMessageText(message: Message): string {
   for (const part of message) {
     if (part.base && part.fill) {
       // Extract the actual text values from the typed objects
-      const baseText =
-        typeof part.base === "string"
-          ? part.base
-          : (part.base as any).text || part.base;
-      const fillText =
-        typeof part.fill === "string"
-          ? part.fill
-          : (part.fill as any).text || part.fill;
+      const baseText = (part.base as any).selection;
+      const fillText = (part.fill as any).selection;
 
       // Replace the asterisks in the base phrase with the fill phrase
       const combinedText = baseText.replace(/\*{4}/g, fillText);

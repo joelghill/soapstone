@@ -268,14 +268,14 @@ postForm.addEventListener('submit', async function(e) {
         
         // Map category to lexicon type
         const fillTypeMap = {
-            'characters': 'social.soapstone.text.en#characters',
-            'objects': 'social.soapstone.text.en#objects',
-            'techniques': 'social.soapstone.text.en#techniques',
-            'actions': 'social.soapstone.text.en#actions',
-            'geography': 'social.soapstone.text.en#geography',
-            'orientation': 'social.soapstone.text.en#orientation',
-            'bodyParts': 'social.soapstone.text.en#bodyParts',
-            'attributes': 'social.soapstone.text.en#attributes'
+            'characters': 'social.soapstone.text.en.defs#characters',
+            'objects': 'social.soapstone.text.en.defs#objects',
+            'techniques': 'social.soapstone.text.en.defs#techniques',
+            'actions': 'social.soapstone.text.en.defs#actions',
+            'geography': 'social.soapstone.text.en.defs#geography',
+            'orientation': 'social.soapstone.text.en.defs#orientation',
+            'bodyParts': 'social.soapstone.text.en.defs#bodyParts',
+            'attributes': 'social.soapstone.text.en.defs#attributes'
         };
         
         // Prepare request body according to lexicon schema
@@ -283,12 +283,12 @@ postForm.addEventListener('submit', async function(e) {
           message: [
               {
                   base: {
-                      $type: 'social.soapstone.text.en#basePhrases',
-                      value: basePhrase
+                      $type: 'social.soapstone.text.en.defs#basePhrase',
+                      selection: basePhrase
                   },
                   fill: {
-                      $type: fillTypeMap[fillCategory] || 'social.soapstone.text.en#objects',
-                      value: fillPhrase
+                      $type: fillTypeMap[fillCategory] || 'social.soapstone.text.en.defs#object',
+                      selection: fillPhrase
                   }
               }
           ],

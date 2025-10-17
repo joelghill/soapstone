@@ -3,8 +3,8 @@ import { Post } from "./entities";
 import postgis from "knex-postgis";
 import { PostView } from "#/lexicon/types/social/soapstone/feed/defs";
 import { Message } from "#/lexicon/types/social/soapstone/message/defs";
-import { parseGeoURI } from "#/lib/utils/geo";
-import { createMessageText } from "#/lib/utils/message";
+import { parseGeoURI, convertPostGISToGeoURI } from "#/lib/utils/geo";
+import { createMessageText, validateMessageType } from "#/lib/utils/message";
 
 /**
  * Repository for managing post-related database operations.
@@ -41,6 +41,7 @@ export class PostRepository {
         "post.author_did",
         "post.text",
         "post.location",
+        "post.elevation",
         "post.created_at",
         "post.indexed_at",
         this.st.asText("post.location").as("location_text"),
@@ -66,11 +67,15 @@ export class PostRepository {
     // Build PostView objects
     const postViews: PostView[] = posts.map((post) => {
       const ratings = ratingsMap.get(post.uri) || { positive: 0, negative: 0 };
+
+      // Convert PostGIS POINT text to geo URI format
+      const geoUri = convertPostGISToGeoURI(post.location_text, post.elevation);
+
       return {
         uri: post.uri,
         author_uri: post.author_did,
         text: post.text,
-        location: post.location_text, // PostGIS location as text
+        location: geoUri, // Geo URI format
         positiveRatingsCount: ratings.positive,
         negativeRatingsCount: ratings.negative,
         indexedAt: post.indexed_at.toISOString(),
@@ -92,6 +97,9 @@ export class PostRepository {
     geoUri: string;
     createdAt: string;
   }): Promise<void> {
+    // validate message types
+    validateMessageType(post.message);
+
     // Parse geo URI to get coordinates
     const geoData = parseGeoURI(post.geoUri);
 
@@ -209,7 +217,7 @@ export class PostRepository {
   async getPostsPaginated(
     limit: number = 20,
     offset: number = 0,
-  ): Promise<Post[]> {
+  ): Promise<PostView[]> {
     // Query posts with pagination and ordering
     const query = this.db("post")
       .select(
@@ -217,6 +225,7 @@ export class PostRepository {
         "post.author_did",
         "post.text",
         "post.location",
+        "post.elevation",
         "post.created_at",
         "post.indexed_at",
         this.st.asText("post.location").as("location_text"),
@@ -225,6 +234,39 @@ export class PostRepository {
       .limit(limit)
       .offset(offset);
 
-    return await query;
+    const posts = await query;
+
+    // Get rating counts for all posts
+    const postUris = posts.map((p) => p.uri);
+    const ratingCounts = await this.getRatingCounts(postUris);
+
+    // Create a map for quick rating lookup
+    const ratingsMap = new Map();
+    ratingCounts.forEach((rating) => {
+      ratingsMap.set(rating.post_uri, {
+        positive: parseInt(rating.positive_count) || 0,
+        negative: parseInt(rating.negative_count) || 0,
+      });
+    });
+
+    // Build PostView objects
+    const postViews: PostView[] = posts.map((post) => {
+      const ratings = ratingsMap.get(post.uri) || { positive: 0, negative: 0 };
+
+      // Convert PostGIS POINT text to geo URI format
+      const geoUri = convertPostGISToGeoURI(post.location_text, post.elevation);
+
+      return {
+        uri: post.uri,
+        author_uri: post.author_did,
+        text: post.text,
+        location: geoUri, // Geo URI format
+        positiveRatingsCount: ratings.positive,
+        negativeRatingsCount: ratings.negative,
+        indexedAt: post.indexed_at.toISOString(),
+      };
+    });
+
+    return postViews;
   }
 }

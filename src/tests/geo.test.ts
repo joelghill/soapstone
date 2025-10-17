@@ -1,4 +1,4 @@
-import { parseGeoURI } from "#/lib/utils/geo";
+import { parseGeoURI, convertPostGISToGeoURI } from "#/lib/utils/geo";
 
 describe("parseGeoURI", () => {
   it("should parse a basic geo URI with latitude and longitude", () => {
@@ -143,5 +143,64 @@ describe("parseGeoURI", () => {
       longitude: -0.000001,
       altitude: 0.001,
     });
+  });
+});
+
+describe("convertPostGISToGeoURI", () => {
+  it("should convert basic PostGIS POINT to geo URI", () => {
+    const result = convertPostGISToGeoURI("POINT(-122.4194 37.7749)");
+
+    expect(result).toBe("geo:37.7749,-122.4194");
+  });
+
+  it("should convert PostGIS POINT with elevation to geo URI", () => {
+    const result = convertPostGISToGeoURI("POINT(-122.4194 37.7749)", 100.5);
+
+    expect(result).toBe("geo:37.7749,-122.4194,100.5");
+  });
+
+  it("should handle negative coordinates", () => {
+    const result = convertPostGISToGeoURI("POINT(151.2093 -33.8688)");
+
+    expect(result).toBe("geo:-33.8688,151.2093");
+  });
+
+  it("should handle zero coordinates", () => {
+    const result = convertPostGISToGeoURI("POINT(0 0)");
+
+    expect(result).toBe("geo:0,0");
+  });
+
+  it("should handle elevation of zero", () => {
+    const result = convertPostGISToGeoURI("POINT(-122.4194 37.7749)", 0);
+
+    expect(result).toBe("geo:37.7749,-122.4194,0");
+  });
+
+  it("should handle null elevation", () => {
+    const result = convertPostGISToGeoURI("POINT(-122.4194 37.7749)", null);
+
+    expect(result).toBe("geo:37.7749,-122.4194");
+  });
+
+  it("should handle undefined elevation", () => {
+    const result = convertPostGISToGeoURI(
+      "POINT(-122.4194 37.7749)",
+      undefined,
+    );
+
+    expect(result).toBe("geo:37.7749,-122.4194");
+  });
+
+  it("should return empty string for invalid PostGIS format", () => {
+    const result = convertPostGISToGeoURI("INVALID FORMAT");
+
+    expect(result).toBe("");
+  });
+
+  it("should handle high precision coordinates", () => {
+    const result = convertPostGISToGeoURI("POINT(-122.419414 37.774925)");
+
+    expect(result).toBe("geo:37.774925,-122.419414");
   });
 });

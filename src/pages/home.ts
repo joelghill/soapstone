@@ -1,9 +1,9 @@
-import type { Post } from "#/lib/repositories/entities";
+import type { PostView } from "#/lexicon/types/social/soapstone/feed/defs";
 import type { Response } from "express";
 import * as TextEn from "#/lexicon/types/social/soapstone/text/en/defs";
 
 type Props = {
-  posts: Post[];
+  posts: PostView[];
   didHandleMap: Record<string, string>;
   profile?: { displayName?: string };
   lexicon?: {

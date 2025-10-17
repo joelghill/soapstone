@@ -26,10 +26,10 @@
 /* Bootstrap Dark Theme with Dark Amber Palette */
 :root {
   /* Base dark background colors */
-  --bs-body-bg: #0f0a07;
+  --bs-body-bg: #000000;
   --bs-body-color: #f4f1ec;
-  --bs-border-color: #2a1f18;
-  --bs-secondary-bg: #1a1108;
+  --bs-border-color: #1a1a1a;
+  --bs-secondary-bg: #0a0a0a;
   
   /* Dark amber primary colors */
   --bs-primary: #feb204;
@@ -39,52 +39,52 @@
   --bs-primary-text-emphasis: #ffd22b;
   
   /* Secondary colors with amber undertones */
-  --bs-secondary: #3d2f21;
-  --bs-secondary-rgb: 61, 47, 33;
-  --bs-secondary-bg-subtle: #1a1108;
-  --bs-secondary-border-subtle: #2a1f18;
+  --bs-secondary: #2a2a2a;
+  --bs-secondary-rgb: 42, 42, 42;
+  --bs-secondary-bg-subtle: #0a0a0a;
+  --bs-secondary-border-subtle: #1a1a1a;
   --bs-secondary-text-emphasis: #8b7355;
   
   /* Success colors using warm greens */
   --bs-success: #4a5d23;
   --bs-success-rgb: 74, 93, 35;
-  --bs-success-bg-subtle: #1a1f0a;
-  --bs-success-border-subtle: #2a2f15;
+  --bs-success-bg-subtle: #0f1505;
+  --bs-success-border-subtle: #1a2a0a;
   --bs-success-text-emphasis: #6b8632;
   
   /* Info colors using cool amber tones */
   --bs-info: #8b6914;
   --bs-info-rgb: 139, 105, 20;
-  --bs-info-bg-subtle: #1f1805;
-  --bs-info-border-subtle: #3f300a;
+  --bs-info-bg-subtle: #151105;
+  --bs-info-border-subtle: #2a1f0a;
   --bs-info-text-emphasis: #b8911c;
   
   /* Warning colors using darker amber tones */
   --bs-warning: #ff8503;
   --bs-warning-rgb: 255, 133, 3;
-  --bs-warning-bg-subtle: #2a1605;
-  --bs-warning-border-subtle: #4a2c0a;
+  --bs-warning-bg-subtle: #1a0f00;
+  --bs-warning-border-subtle: #2a1a00;
   --bs-warning-text-emphasis: #feb204;
   
   /* Danger colors using deep red-amber */
   --bs-danger: #d53600;
   --bs-danger-rgb: 213, 54, 0;
-  --bs-danger-bg-subtle: #2a0b00;
-  --bs-danger-border-subtle: #4a1600;
+  --bs-danger-bg-subtle: #1a0500;
+  --bs-danger-border-subtle: #2a0a00;
   --bs-danger-text-emphasis: #ff6b2b;
   
   /* Light and dark theme colors */
   --bs-light: #8b7355;
   --bs-light-rgb: 139, 115, 85;
-  --bs-light-bg-subtle: #1f1a15;
-  --bs-light-border-subtle: #2a1f18;
+  --bs-light-bg-subtle: #1a1a1a;
+  --bs-light-border-subtle: #1a1a1a;
   --bs-light-text-emphasis: #d4c4a0;
   
-  --bs-dark: #1a1108;
-  --bs-dark-rgb: 26, 17, 8;
-  --bs-dark-bg-subtle: #0f0a07;
-  --bs-dark-border-subtle: #2a1f18;
-  --bs-dark-text-emphasis: #3d2f21;
+  --bs-dark: #0a0a0a;
+  --bs-dark-rgb: 10, 10, 10;
+  --bs-dark-bg-subtle: #000000;
+  --bs-dark-border-subtle: #1a1a1a;
+  --bs-dark-text-emphasis: #2a2a2a;
 }
 
 /* Typography using custom fonts */

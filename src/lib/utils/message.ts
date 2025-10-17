@@ -28,3 +28,23 @@ export function createMessageText(message: Message): string {
 
   return parts.join(" ").trim();
 }
+
+/**
+ * Validates the structure and types of a message object.
+ * @param message The message to validate.
+ */
+export function validateMessageType(message: Message): void {
+  for (const part of message) {
+    const baseType = part.base.$type;
+    const fillType = part.fill.$type;
+    // If the fill or base type does not start with the expected prefixes, throw an error
+    if (
+      !baseType.startsWith("social.soapstone.text.") ||
+      !fillType.startsWith("social.soapstone.text.")
+    ) {
+      throw new Error(
+        `Invalid message part types: base type ${baseType}, fill type ${fillType}`,
+      );
+    }
+  }
+}

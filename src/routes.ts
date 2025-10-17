@@ -160,7 +160,7 @@ export const createRouter = (ctx: AppContext) => {
 
       // Map user DIDs to their domain-name handles
       const didHandleMap = await ctx.resolver.resolveDidsToHandles(
-        posts.map((p) => p.authorDid),
+        posts.map((p) => p.author_uri),
       );
 
       if (!agent) {

@@ -16,7 +16,7 @@ export const createClient = async (repo: AuthRepository) => {
         ? `${url}/client-metadata.json`
         : `http://localhost?redirect_uri=${enc(callback)}&scope=${enc(scope)}`,
       client_uri: url,
-      redirect_uris: [callback, "social.soapstone:/oauth/callback"],
+      redirect_uris: ["social.soapstone:/oauth/callback", callback],
       scope: scope,
       grant_types: ["authorization_code", "refresh_token"],
       response_types: ["code"],

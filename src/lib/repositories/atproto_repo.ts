@@ -18,6 +18,9 @@ export class AtProtoRepository {
   constructor(private oauth: OAuthClient) {}
 
   async decodeJWT(token: SignedJwt): Promise<any> {
+    if (!this.oauth.keyset) {
+      throw new Error("OAuth client keyset is not initialized");
+    }
     try {
       const decoded = await this.oauth.keyset?.verifyJwt(token);
       return decoded;

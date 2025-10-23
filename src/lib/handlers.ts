@@ -50,7 +50,7 @@ export class SoapStoneLexiconHandler {
 
       const jwt = authHeader.split(" ")[1] as SignedJwt;
       const auth_data = await this.controller.decodeJWT(jwt);
-      this.logger.debug({ auth: auth_data }, "Decoded JWT");
+      this.logger.debug({ decoded: auth_data }, "Decoded JWT");
       if (!auth_data.sub) return null;
       return { did: auth_data.sub }; // Return an object with the DID from the 'sub' field
     } catch (error) {

@@ -119,6 +119,7 @@ export async function createTestServer(
  */
 export function createMockController(): jest.Mocked<ISoapStoneLexiconController> {
   return {
+    decodeJWT: jest.fn(),
     getPostsByLocation: jest.fn(),
     createPost: jest.fn(),
   } as jest.Mocked<ISoapStoneLexiconController>;
@@ -137,3 +138,36 @@ export const mockSessionData = {
 export const mockAuthCredentials = {
   did: "did:test:user",
 };
+
+/**
+ * Mock JWT payload for testing authenticated requests
+ */
+export const mockJwtPayload = {
+  sub: "did:test:user",
+  iss: "https://bsky.social",
+  aud: "did:test:client",
+  iat: Math.floor(Date.now() / 1000),
+  exp: Math.floor(Date.now() / 1000) + 3600, // 1 hour from now
+};
+
+/**
+ * Generate a mock JWT token for testing
+ */
+export function generateMockJwt(): string {
+  // Create a simple mock JWT token (header.payload.signature)
+  const header = Buffer.from(
+    JSON.stringify({ alg: "HS256", typ: "JWT" }),
+  ).toString("base64url");
+  const payload = Buffer.from(JSON.stringify(mockJwtPayload)).toString(
+    "base64url",
+  );
+  const signature = "mock-signature";
+  return `${header}.${payload}.${signature}`;
+}
+
+/**
+ * Generate an Authorization header with Bearer token for testing
+ */
+export function getMockAuthHeader(): string {
+  return `Bearer ${generateMockJwt()}`;
+}

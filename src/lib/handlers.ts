@@ -10,6 +10,7 @@ import { env } from "#/lib/env";
 import pino from "pino";
 import * as GetPosts from "#/lexicon/types/social/soapstone/feed/getPosts";
 import * as CreatePost from "#/lexicon/types/social/soapstone/feed/createPost";
+import { SignedJwt } from "@atproto/oauth-client-node";
 
 export type Session = { did: string };
 export type SessionCredentials = { credentials: Session };
@@ -40,12 +41,21 @@ export class SoapStoneLexiconHandler {
     res: ServerResponse<IncomingMessage>,
   ) => {
     try {
-      const session = await getIronSession<Session>(req, res, {
-        cookieName: "sid",
-        password: env.COOKIE_SECRET,
-      });
-      if (!session.did) return null;
-      return session;
+      // Get auth data from JWT
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return null;
+      }
+
+      const jwt = authHeader.split(" ")[1] as SignedJwt;
+      if (!jwt) {
+        return null;
+      }
+
+      const auth_data = await this.controller.decodeJWT(jwt);
+      this.logger.debug({ auth_data }, "Decoded JWT auth data");
+      if (!auth_data.sub) return null;
+      return { did: auth_data.sub }; // Return an object with the DID from the 'sub' field
     } catch (error) {
       this.logger.error({ error }, "Error getting session");
       return null;

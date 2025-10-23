@@ -1,6 +1,6 @@
 import { Agent } from "@atproto/api";
 import { TID } from "@atproto/common";
-import { OAuthClient } from "@atproto/oauth-client";
+import { OAuthClient, SignedJwt } from "@atproto/oauth-client";
 import { Record as PostRecord } from "#/lexicon/types/social/soapstone/feed/post";
 import { Message } from "#/lexicon/types/social/soapstone/message/defs";
 import { Location } from "#/lexicon/types/social/soapstone/location/defs";
@@ -16,6 +16,15 @@ export interface AtProtoWriteResult {
  */
 export class AtProtoRepository {
   constructor(private oauth: OAuthClient) {}
+
+  async decodeJWT(token: SignedJwt): Promise<any> {
+    try {
+      const decoded = await this.oauth.keyset?.verifyJwt(token);
+      return decoded;
+    } catch (err) {
+      throw new Error(`Failed to decode JWT: ${err}`);
+    }
+  }
 
   /**
    * Creates a post record in the user's AT Protocol repository.

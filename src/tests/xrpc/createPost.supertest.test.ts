@@ -1,10 +1,11 @@
 import request from "supertest";
-import { getIronSession } from "iron-session";
 import {
   createTestServer,
   createMockController,
   mockSessionData,
   mockAuthCredentials,
+  mockJwtPayload,
+  getMockAuthHeader,
 } from "../utils/test-app";
 import { ISoapStoneLexiconController } from "../../lib/controllers";
 import {
@@ -15,21 +16,9 @@ import { Location } from "../../lexicon/types/social/soapstone/location/defs";
 import { CreatePostResponse } from "../../lexicon/types/social/soapstone/feed/defs";
 import { SoapStoneServer } from "#/lib/server";
 
-// Mock iron-session for session management
-jest.mock("iron-session");
-const mockGetIronSession = getIronSession as jest.MockedFunction<
-  typeof getIronSession
->;
-
 describe("XRPC createPost endpoint (supertest)", () => {
   let server: SoapStoneServer;
   let mockController: jest.Mocked<ISoapStoneLexiconController>;
-  let mockSession: {
-    did?: string;
-    save: jest.Mock;
-    destroy: jest.Mock;
-    updateConfig: jest.Mock;
-  };
 
   const sampleMessage = [
     {
@@ -61,19 +50,11 @@ describe("XRPC createPost endpoint (supertest)", () => {
     // Create the test app
     server = await createTestServer(mockController);
 
-    // Mock session
-    mockSession = {
-      did: mockSessionData.did,
-      save: jest.fn(),
-      destroy: jest.fn(),
-      updateConfig: jest.fn(),
-    };
-
     // Reset all mocks
     jest.clearAllMocks();
 
-    // Setup default mock behaviors
-    mockGetIronSession.mockResolvedValue(mockSession as any);
+    // Setup default mock behaviors for JWT decoding
+    mockController.decodeJWT.mockResolvedValue(mockJwtPayload);
     mockController.createPost.mockResolvedValue(sampleCreatePostResponse);
   });
 
@@ -91,6 +72,7 @@ describe("XRPC createPost endpoint (supertest)", () => {
     it("should successfully create a post with valid authentication and data", async () => {
       const response = await request(server.app)
         .post("/xrpc/social.soapstone.feed.createPost")
+        .set("Authorization", getMockAuthHeader())
         .send({
           message: sampleMessage,
           location: sampleLocation,
@@ -104,9 +86,7 @@ describe("XRPC createPost endpoint (supertest)", () => {
       );
     });
 
-    it("should return 401 when no session exists", async () => {
-      mockSession.did = undefined;
-
+    it("should return 401 when no authorization header is provided", async () => {
       await request(server.app)
         .post("/xrpc/social.soapstone.feed.createPost")
         .send({
@@ -118,11 +98,30 @@ describe("XRPC createPost endpoint (supertest)", () => {
       expect(mockController.createPost).not.toHaveBeenCalled();
     });
 
-    it("should handle empty session DID", async () => {
-      mockSession.did = "";
+    it("should return 401 when JWT decoding fails", async () => {
+      mockController.decodeJWT.mockRejectedValue(new Error("Invalid JWT"));
 
       await request(server.app)
         .post("/xrpc/social.soapstone.feed.createPost")
+        .set("Authorization", getMockAuthHeader())
+        .send({
+          message: sampleMessage,
+          location: sampleLocation,
+        })
+        .expect(401);
+
+      expect(mockController.createPost).not.toHaveBeenCalled();
+    });
+
+    it("should return 401 when JWT payload has no sub field", async () => {
+      mockController.decodeJWT.mockResolvedValue({
+        iss: "https://bsky.social",
+        aud: "did:test:client",
+      }); // Missing 'sub' field
+
+      await request(server.app)
+        .post("/xrpc/social.soapstone.feed.createPost")
+        .set("Authorization", getMockAuthHeader())
         .send({
           message: sampleMessage,
           location: sampleLocation,
@@ -135,6 +134,7 @@ describe("XRPC createPost endpoint (supertest)", () => {
     it("should handle missing message in request body", async () => {
       const response = await request(server.app)
         .post("/xrpc/social.soapstone.feed.createPost")
+        .set("Authorization", getMockAuthHeader())
         .send({
           location: sampleLocation,
         })
@@ -150,6 +150,7 @@ describe("XRPC createPost endpoint (supertest)", () => {
     it("should handle missing location in request body", async () => {
       const response = await request(server.app)
         .post("/xrpc/social.soapstone.feed.createPost")
+        .set("Authorization", getMockAuthHeader())
         .send({
           message: sampleMessage,
         })
@@ -165,6 +166,7 @@ describe("XRPC createPost endpoint (supertest)", () => {
     it("should handle empty request body", async () => {
       const response = await request(server.app)
         .post("/xrpc/social.soapstone.feed.createPost")
+        .set("Authorization", getMockAuthHeader())
         .send({})
         .expect(400);
     });
@@ -175,6 +177,7 @@ describe("XRPC createPost endpoint (supertest)", () => {
 
       await request(server.app)
         .post("/xrpc/social.soapstone.feed.createPost")
+        .set("Authorization", getMockAuthHeader())
         .send({
           message: sampleMessage,
           location: sampleLocation,
@@ -208,6 +211,7 @@ describe("XRPC createPost endpoint (supertest)", () => {
 
       const response = await request(server.app)
         .post("/xrpc/social.soapstone.feed.createPost")
+        .set("Authorization", getMockAuthHeader())
         .send({
           message: complexMessage,
           location: sampleLocation,
@@ -229,6 +233,7 @@ describe("XRPC createPost endpoint (supertest)", () => {
 
       const response = await request(server.app)
         .post("/xrpc/social.soapstone.feed.createPost")
+        .set("Authorization", getMockAuthHeader())
         .send({
           message: sampleMessage,
           location: locationWithAltitude,
@@ -250,6 +255,7 @@ describe("XRPC createPost endpoint (supertest)", () => {
 
       const response = await request(server.app)
         .post("/xrpc/social.soapstone.feed.createPost")
+        .set("Authorization", getMockAuthHeader())
         .send({
           message: sampleMessage,
           location: locationWithoutAltitude,
@@ -264,12 +270,13 @@ describe("XRPC createPost endpoint (supertest)", () => {
       );
     });
 
-    it("should handle session error during authentication", async () => {
-      const sessionError = new Error("Session storage error");
-      mockGetIronSession.mockRejectedValue(sessionError);
+    it("should handle authentication error during JWT processing", async () => {
+      const authError = new Error("JWT validation failed");
+      mockController.decodeJWT.mockRejectedValue(authError);
 
       await request(server.app)
         .post("/xrpc/social.soapstone.feed.createPost")
+        .set("Authorization", getMockAuthHeader())
         .send({
           message: sampleMessage,
           location: sampleLocation,
@@ -290,6 +297,7 @@ describe("XRPC createPost endpoint (supertest)", () => {
 
       const response = await request(server.app)
         .post("/xrpc/social.soapstone.feed.createPost")
+        .set("Authorization", getMockAuthHeader())
         .send({
           message: sampleMessage,
           location: sampleLocation,
@@ -315,6 +323,7 @@ describe("XRPC createPost endpoint (supertest)", () => {
 
       const response = await request(server.app)
         .post("/xrpc/social.soapstone.feed.createPost")
+        .set("Authorization", getMockAuthHeader())
         .send({
           message: specialCharMessage,
           location: sampleLocation,
@@ -337,6 +346,7 @@ describe("XRPC createPost endpoint (supertest)", () => {
 
       const response = await request(server.app)
         .post("/xrpc/social.soapstone.feed.createPost")
+        .set("Authorization", getMockAuthHeader())
         .send({
           message: largeMessage,
           location: sampleLocation,
@@ -354,6 +364,7 @@ describe("XRPC createPost endpoint (supertest)", () => {
     it("should handle invalid JSON in request body", async () => {
       await request(server.app)
         .post("/xrpc/social.soapstone.feed.createPost")
+        .set("Authorization", getMockAuthHeader())
         .send("invalid json")
         .set("Content-Type", "application/json")
         .expect(400); // Express will return 400 for invalid JSON
@@ -363,6 +374,7 @@ describe("XRPC createPost endpoint (supertest)", () => {
       const promises = Array.from({ length: 5 }, () =>
         request(server.app)
           .post("/xrpc/social.soapstone.feed.createPost")
+          .set("Authorization", getMockAuthHeader())
           .send({
             message: sampleMessage,
             location: sampleLocation,

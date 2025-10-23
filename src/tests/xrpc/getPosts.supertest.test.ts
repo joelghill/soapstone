@@ -1,31 +1,20 @@
 import request from "supertest";
 import { Application } from "express";
-import { getIronSession } from "iron-session";
 import {
   createTestServer,
   createMockController,
   mockSessionData,
   mockAuthCredentials,
+  mockJwtPayload,
+  getMockAuthHeader,
 } from "../utils/test-app";
 import { ISoapStoneLexiconController } from "../../lib/controllers";
 import { PostView } from "../../lexicon/types/social/soapstone/feed/defs";
 import { SoapStoneServer } from "#/lib/server";
 
-// Mock iron-session for session management
-jest.mock("iron-session");
-const mockGetIronSession = getIronSession as jest.MockedFunction<
-  typeof getIronSession
->;
-
 describe("XRPC getPosts endpoint (supertest)", () => {
   let server: SoapStoneServer;
   let mockController: jest.Mocked<ISoapStoneLexiconController>;
-  let mockSession: {
-    did?: string;
-    save: jest.Mock;
-    destroy: jest.Mock;
-    updateConfig: jest.Mock;
-  };
 
   const samplePosts: PostView[] = [
     {
@@ -55,19 +44,11 @@ describe("XRPC getPosts endpoint (supertest)", () => {
     // Create the test app
     server = await createTestServer(mockController);
 
-    // Mock session
-    mockSession = {
-      did: mockSessionData.did,
-      save: jest.fn(),
-      destroy: jest.fn(),
-      updateConfig: jest.fn(),
-    };
-
     // Reset all mocks
     jest.clearAllMocks();
 
-    // Setup default mock behaviors
-    mockGetIronSession.mockResolvedValue(mockSession as any);
+    // Setup default mock behaviors for JWT decoding
+    mockController.decodeJWT.mockResolvedValue(mockJwtPayload);
     mockController.getPostsByLocation.mockResolvedValue(samplePosts);
   });
 
@@ -75,6 +56,7 @@ describe("XRPC getPosts endpoint (supertest)", () => {
     it("should successfully get posts with valid authentication and location", async () => {
       const response = await request(server.app)
         .get("/xrpc/social.soapstone.feed.getPosts")
+        .set("Authorization", getMockAuthHeader())
         .query({
           location: "geo:37.7749,-122.4194",
         })
@@ -92,6 +74,7 @@ describe("XRPC getPosts endpoint (supertest)", () => {
     it("should successfully get posts with location and radius", async () => {
       const response = await request(server.app)
         .get("/xrpc/social.soapstone.feed.getPosts")
+        .set("Authorization", getMockAuthHeader())
         .query({
           location: "geo:37.7749,-122.4194",
           radius: "500",
@@ -107,9 +90,7 @@ describe("XRPC getPosts endpoint (supertest)", () => {
       );
     });
 
-    it("should return 401 when no session exists", async () => {
-      mockSession.did = undefined;
-
+    it("should return 401 when no authorization header is provided", async () => {
       await request(server.app)
         .get("/xrpc/social.soapstone.feed.getPosts")
         .query({
@@ -120,11 +101,29 @@ describe("XRPC getPosts endpoint (supertest)", () => {
       expect(mockController.getPostsByLocation).not.toHaveBeenCalled();
     });
 
-    it("should handle empty session DID", async () => {
-      mockSession.did = "";
+    it("should return 401 when JWT decoding fails", async () => {
+      mockController.decodeJWT.mockRejectedValue(new Error("Invalid JWT"));
 
       await request(server.app)
         .get("/xrpc/social.soapstone.feed.getPosts")
+        .set("Authorization", getMockAuthHeader())
+        .query({
+          location: "geo:37.7749,-122.4194",
+        })
+        .expect(401);
+
+      expect(mockController.getPostsByLocation).not.toHaveBeenCalled();
+    });
+
+    it("should return 401 when JWT payload has no sub field", async () => {
+      mockController.decodeJWT.mockResolvedValue({
+        iss: "https://bsky.social",
+        aud: "did:test:client",
+      }); // Missing 'sub' field
+
+      await request(server.app)
+        .get("/xrpc/social.soapstone.feed.getPosts")
+        .set("Authorization", getMockAuthHeader())
         .query({
           location: "geo:37.7749,-122.4194",
         })
@@ -136,6 +135,7 @@ describe("XRPC getPosts endpoint (supertest)", () => {
     it("should handle missing location parameter", async () => {
       const response = await request(server.app)
         .get("/xrpc/social.soapstone.feed.getPosts")
+        .set("Authorization", getMockAuthHeader())
         .expect(400);
 
       expect(mockController.getPostsByLocation).not.toHaveBeenCalled();
@@ -144,6 +144,7 @@ describe("XRPC getPosts endpoint (supertest)", () => {
     it("should handle decimal radius values", async () => {
       const response = await request(server.app)
         .get("/xrpc/social.soapstone.feed.getPosts")
+        .set("Authorization", getMockAuthHeader())
         .query({
           location: "geo:37.7749,-122.4194",
           radius: "250.5",
@@ -162,6 +163,7 @@ describe("XRPC getPosts endpoint (supertest)", () => {
     it("should handle negative coordinates", async () => {
       const response = await request(server.app)
         .get("/xrpc/social.soapstone.feed.getPosts")
+        .set("Authorization", getMockAuthHeader())
         .query({
           location: "geo:-33.8688,151.2093",
         })
@@ -181,6 +183,7 @@ describe("XRPC getPosts endpoint (supertest)", () => {
 
       const response = await request(server.app)
         .get("/xrpc/social.soapstone.feed.getPosts")
+        .set("Authorization", getMockAuthHeader())
         .query({
           location: "geo:37.7749,-122.4194",
         })
@@ -201,6 +204,7 @@ describe("XRPC getPosts endpoint (supertest)", () => {
 
       await request(server.app)
         .get("/xrpc/social.soapstone.feed.getPosts")
+        .set("Authorization", getMockAuthHeader())
         .query({
           location: "geo:37.7749,-122.4194",
         })
@@ -221,6 +225,7 @@ describe("XRPC getPosts endpoint (supertest)", () => {
 
       const response = await request(server.app)
         .get("/xrpc/social.soapstone.feed.getPosts")
+        .set("Authorization", getMockAuthHeader())
         .query({
           location: "geo:37.7749,-122.4194",
         })
@@ -234,6 +239,7 @@ describe("XRPC getPosts endpoint (supertest)", () => {
     it("should handle large radius values", async () => {
       const response = await request(server.app)
         .get("/xrpc/social.soapstone.feed.getPosts")
+        .set("Authorization", getMockAuthHeader())
         .query({
           location: "geo:37.7749,-122.4194",
           radius: "100000",
@@ -244,6 +250,7 @@ describe("XRPC getPosts endpoint (supertest)", () => {
     it("should handle zero radius", async () => {
       const response = await request(server.app)
         .get("/xrpc/social.soapstone.feed.getPosts")
+        .set("Authorization", getMockAuthHeader())
         .query({
           location: "geo:37.7749,-122.4194",
           radius: "0",
@@ -254,6 +261,7 @@ describe("XRPC getPosts endpoint (supertest)", () => {
     it("should handle very precise coordinates", async () => {
       const response = await request(server.app)
         .get("/xrpc/social.soapstone.feed.getPosts")
+        .set("Authorization", getMockAuthHeader())
         .query({
           location: "geo:37.774925,-122.419414",
         })
@@ -271,6 +279,7 @@ describe("XRPC getPosts endpoint (supertest)", () => {
     it("should handle boundary coordinates", async () => {
       const response = await request(server.app)
         .get("/xrpc/social.soapstone.feed.getPosts")
+        .set("Authorization", getMockAuthHeader())
         .query({
           location: "geo:90,-180",
         })
@@ -285,12 +294,13 @@ describe("XRPC getPosts endpoint (supertest)", () => {
       );
     });
 
-    it("should handle session error during authentication", async () => {
-      const sessionError = new Error("Session storage error");
-      mockGetIronSession.mockRejectedValue(sessionError);
+    it("should handle authentication error during JWT processing", async () => {
+      const authError = new Error("JWT validation failed");
+      mockController.decodeJWT.mockRejectedValue(authError);
 
       await request(server.app)
         .get("/xrpc/social.soapstone.feed.getPosts")
+        .set("Authorization", getMockAuthHeader())
         .query({
           location: "geo:37.7749,-122.4194",
         })
@@ -302,6 +312,7 @@ describe("XRPC getPosts endpoint (supertest)", () => {
     it("should handle invalid radius format", async () => {
       const response = await request(server.app)
         .get("/xrpc/social.soapstone.feed.getPosts")
+        .set("Authorization", getMockAuthHeader())
         .query({
           location: "geo:37.7749,-122.4194",
           radius: "invalid",
@@ -313,6 +324,7 @@ describe("XRPC getPosts endpoint (supertest)", () => {
       const promises = Array.from({ length: 5 }, (_, i) =>
         request(server.app)
           .get("/xrpc/social.soapstone.feed.getPosts")
+          .set("Authorization", getMockAuthHeader())
           .query({
             location: `geo:37.${7749 + i},-122.4194`,
             radius: "1000",
@@ -349,6 +361,7 @@ describe("XRPC getPosts endpoint (supertest)", () => {
 
       const response = await request(server.app)
         .get("/xrpc/social.soapstone.feed.getPosts")
+        .set("Authorization", getMockAuthHeader())
         .query({
           location: "geo:37.7749,-122.4194",
         })
@@ -362,6 +375,7 @@ describe("XRPC getPosts endpoint (supertest)", () => {
     it("should preserve Content-Type header", async () => {
       const response = await request(server.app)
         .get("/xrpc/social.soapstone.feed.getPosts")
+        .set("Authorization", getMockAuthHeader())
         .query({
           location: "geo:37.7749,-122.4194",
         })

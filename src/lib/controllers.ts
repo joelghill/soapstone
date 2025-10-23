@@ -6,8 +6,16 @@ import { Location } from "#/lexicon/types/social/soapstone/location/defs";
 import { Message } from "#/lexicon/types/social/soapstone/message/defs";
 import { PostRepository } from "#/lib/repositories/post_repo";
 import { AtProtoRepository } from "#/lib/repositories/atproto_repo";
+import { SignedJwt } from "@atproto/oauth-client-node";
 
 export interface ISoapStoneLexiconController {
+  /**
+   * Decodes a JWT token and verifies its signature.
+   * @param token The JWT token to decode.
+   * @returns A promise that resolves to the decoded token payload.
+   */
+  decodeJWT(token: SignedJwt): Promise<any>;
+
   /**
    * Fetches posts by location within a specified radius for a user.
    * @param geoUri: string, - Geo URI of the location.
@@ -43,6 +51,20 @@ export class SoapStoneLexiconController implements ISoapStoneLexiconController {
   ) {
     this.postRepository = postRepository;
     this.atprotoRepository = atprotoRepository;
+  }
+
+  /**
+   * Decodes a JWT token and verifies its signature.
+   * @param token The JWT token to decode.
+   * @returns A promise that resolves to the decoded token payload.
+   */
+  async decodeJWT(token: SignedJwt): Promise<any> {
+    try {
+      const decoded = await this.atprotoRepository.decodeJWT(token);
+      return decoded;
+    } catch (err) {
+      throw new Error(`Failed to decode JWT: ${err}`);
+    }
   }
 
   /**

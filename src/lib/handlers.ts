@@ -44,17 +44,14 @@ export class SoapStoneLexiconHandler {
       // Get auth data from JWT
       const authHeader = req.headers.authorization;
       if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        this.logger.debug("Missing or invalid Authorization header");
         return null;
       }
 
       const jwt = authHeader.split(" ")[1] as SignedJwt;
-      if (!jwt) {
-        return null;
-      }
-
       const auth_data = await this.controller.decodeJWT(jwt);
-      this.logger.debug({ auth_data }, "Decoded JWT auth data");
       if (!auth_data.sub) return null;
+      this.logger.debug({ auth_data }, "Decoded JWT");
       return { did: auth_data.sub }; // Return an object with the DID from the 'sub' field
     } catch (error) {
       this.logger.error({ error }, "Error getting session");

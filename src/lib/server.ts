@@ -74,7 +74,7 @@ export class SoapStoneServer {
   }
 
   public static async create(ctx: AppContext | null = null) {
-    const logger = pino({ name: "server start" });
+    const logger = pino({ name: "server start", level: env.LOG_LEVEL });
 
     // Set up the PostgreSQL database
     const db = createDb();

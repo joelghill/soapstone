@@ -318,112 +318,6 @@ export const schemaDict = {
       },
     },
   },
-  SocialSoapstoneFeedCreatePost: {
-    lexicon: 1,
-    id: 'social.soapstone.feed.createPost',
-    defs: {
-      main: {
-        type: 'procedure',
-        description:
-          'Create a single new post. Requires auth, implemented by App View.',
-        input: {
-          encoding: 'application/json',
-          schema: {
-            type: 'ref',
-            ref: 'lex:social.soapstone.feed.defs#createPostSchema',
-          },
-        },
-        output: {
-          encoding: 'application/json',
-          schema: {
-            type: 'ref',
-            ref: 'lex:social.soapstone.feed.defs#createPostResponse',
-          },
-        },
-        errors: [
-          {
-            name: 'InvalidGeoURI',
-            description:
-              'Indicates that the submitted location is not a valid Geo URI.',
-          },
-          {
-            name: 'InvalidSwap',
-            description:
-              "Indicates that 'swapCommit' didn't match current repo commit.",
-          },
-        ],
-      },
-    },
-  },
-  SocialSoapstoneFeedCreateRating: {
-    lexicon: 1,
-    id: 'social.soapstone.feed.createRating',
-    defs: {
-      main: {
-        type: 'procedure',
-        description:
-          'Create a rating for a post. Requires auth, implemented by App View.',
-        input: {
-          encoding: 'application/json',
-          schema: {
-            type: 'object',
-            required: ['post', 'value'],
-            properties: {
-              post: {
-                type: 'ref',
-                ref: 'lex:com.atproto.repo.strongRef',
-                description: 'Reference to the post being rated.',
-              },
-              value: {
-                type: 'boolean',
-                description:
-                  'The rating value. True for positive rating, false for negative rating.',
-              },
-            },
-          },
-        },
-        output: {
-          encoding: 'application/json',
-          schema: {
-            type: 'object',
-            required: ['uri', 'cid'],
-            properties: {
-              uri: {
-                type: 'string',
-                format: 'at-uri',
-                description: 'The URI of the created rating record.',
-              },
-              cid: {
-                type: 'string',
-                format: 'cid',
-                description: 'The CID of the created rating record.',
-              },
-              commit: {
-                type: 'ref',
-                ref: 'lex:com.atproto.repo.defs#commitMeta',
-              },
-            },
-          },
-        },
-        errors: [
-          {
-            name: 'InvalidPost',
-            description:
-              'The referenced post does not exist or is not accessible.',
-          },
-          {
-            name: 'DuplicateRating',
-            description: 'User has already rated this post.',
-          },
-          {
-            name: 'InvalidSwap',
-            description:
-              "Indicates that 'swapCommit' didn't match current repo commit.",
-          },
-        ],
-      },
-    },
-  },
   SocialSoapstoneFeedDefs: {
     lexicon: 1,
     id: 'social.soapstone.feed.defs',
@@ -469,9 +363,14 @@ export const schemaDict = {
         description:
           "Metadata about the requesting account's relationship with the subject content.",
         properties: {
-          rating: {
+          rating_uri: {
             type: 'string',
             format: 'at-uri',
+          },
+          rating_value: {
+            type: 'boolean',
+            description:
+              'The rating value. True for positive rating, false for negative rating.',
           },
         },
       },
@@ -510,92 +409,6 @@ export const schemaDict = {
             knownValues: ['valid', 'unknown'],
           },
         },
-      },
-    },
-  },
-  SocialSoapstoneFeedDeletePost: {
-    lexicon: 1,
-    id: 'social.soapstone.feed.deletePost',
-    defs: {
-      main: {
-        type: 'procedure',
-        description:
-          "Delete a soapstone post, or ensure it doesn't exist. Requires auth, implemented by App View.",
-        input: {
-          encoding: 'application/json',
-          schema: {
-            type: 'object',
-            required: ['rkey'],
-            properties: {
-              rkey: {
-                type: 'string',
-                format: 'record-key',
-                description: 'The Record Key.',
-              },
-            },
-          },
-        },
-        output: {
-          encoding: 'application/json',
-          schema: {
-            type: 'object',
-            properties: {
-              commit: {
-                type: 'ref',
-                ref: 'lex:com.atproto.repo.defs#commitMeta',
-              },
-            },
-          },
-        },
-        errors: [
-          {
-            name: 'InvalidSwap',
-          },
-        ],
-      },
-    },
-  },
-  SocialSoapstoneFeedDeleteRating: {
-    lexicon: 1,
-    id: 'social.soapstone.feed.deleteRating',
-    defs: {
-      main: {
-        type: 'procedure',
-        description:
-          "Delete a rating, or ensure it doesn't exist. Requires auth, implemented by App View.",
-        input: {
-          encoding: 'application/json',
-          schema: {
-            type: 'object',
-            required: ['rkey'],
-            properties: {
-              rkey: {
-                type: 'string',
-                format: 'record-key',
-                description: 'The Record Key of the rating to delete.',
-              },
-            },
-          },
-        },
-        output: {
-          encoding: 'application/json',
-          schema: {
-            type: 'object',
-            properties: {
-              commit: {
-                type: 'ref',
-                ref: 'lex:com.atproto.repo.defs#commitMeta',
-              },
-            },
-          },
-        },
-        errors: [
-          {
-            name: 'InvalidSwap',
-            description:
-              "Indicates that 'swapCommit' didn't match current repo commit.",
-          },
-        ],
       },
     },
   },
@@ -1037,141 +850,6 @@ export const schemaDict = {
       },
     },
   },
-  SocialSoapstoneTextGetBasePhrases: {
-    lexicon: 1,
-    id: 'social.soapstone.text.getBasePhrases',
-    defs: {
-      main: {
-        type: 'query',
-        description:
-          'Gets all available base phrases for message construction.',
-        parameters: {
-          type: 'params',
-          properties: {
-            language: {
-              type: 'string',
-              description:
-                "Language code for the base phrases. Defaults to 'en' if not specified.",
-              default: 'en',
-            },
-          },
-        },
-        output: {
-          encoding: 'application/json',
-          schema: {
-            type: 'object',
-            required: ['basePhrases'],
-            properties: {
-              basePhrases: {
-                type: 'array',
-                description: 'Array of all available base phrases',
-                items: {
-                  type: 'string',
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  },
-  SocialSoapstoneTextGetFillPhrases: {
-    lexicon: 1,
-    id: 'social.soapstone.text.getFillPhrases',
-    defs: {
-      main: {
-        type: 'query',
-        description:
-          'Gets all available fill phrases organized by category for message construction.',
-        parameters: {
-          type: 'params',
-          properties: {
-            language: {
-              type: 'string',
-              description:
-                "Language code for the fill phrases. Defaults to 'en' if not specified.",
-              default: 'en',
-            },
-          },
-        },
-        output: {
-          encoding: 'application/json',
-          schema: {
-            type: 'object',
-            required: [
-              'characters',
-              'objects',
-              'techniques',
-              'actions',
-              'geography',
-              'orientation',
-              'bodyParts',
-              'attributes',
-            ],
-            properties: {
-              characters: {
-                type: 'array',
-                description: 'Character types that can be used in fill phrases',
-                items: {
-                  type: 'string',
-                },
-              },
-              objects: {
-                type: 'array',
-                description: 'Objects that can be used in fill phrases',
-                items: {
-                  type: 'string',
-                },
-              },
-              techniques: {
-                type: 'array',
-                description: 'Techniques that can be used in fill phrases',
-                items: {
-                  type: 'string',
-                },
-              },
-              actions: {
-                type: 'array',
-                description: 'Actions that can be used in fill phrases',
-                items: {
-                  type: 'string',
-                },
-              },
-              geography: {
-                type: 'array',
-                description: 'Geography types that can be used in fill phrases',
-                items: {
-                  type: 'string',
-                },
-              },
-              orientation: {
-                type: 'array',
-                description:
-                  'Orientation types that can be used in fill phrases',
-                items: {
-                  type: 'string',
-                },
-              },
-              bodyParts: {
-                type: 'array',
-                description: 'Body parts that can be used in fill phrases',
-                items: {
-                  type: 'string',
-                },
-              },
-              attributes: {
-                type: 'array',
-                description: 'Attributes that can be used in fill phrases',
-                items: {
-                  type: 'string',
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  },
 } as const satisfies Record<string, LexiconDoc>
 export const schemas = Object.values(schemaDict) satisfies LexiconDoc[]
 export const lexicons: Lexicons = new Lexicons(schemas)
@@ -1210,17 +888,11 @@ export const ids = {
   ComAtprotoRepoDefs: 'com.atproto.repo.defs',
   ComAtprotoRepoStrongRef: 'com.atproto.repo.strongRef',
   SocialSoapstoneActorDefs: 'social.soapstone.actor.defs',
-  SocialSoapstoneFeedCreatePost: 'social.soapstone.feed.createPost',
-  SocialSoapstoneFeedCreateRating: 'social.soapstone.feed.createRating',
   SocialSoapstoneFeedDefs: 'social.soapstone.feed.defs',
-  SocialSoapstoneFeedDeletePost: 'social.soapstone.feed.deletePost',
-  SocialSoapstoneFeedDeleteRating: 'social.soapstone.feed.deleteRating',
   SocialSoapstoneFeedGetPosts: 'social.soapstone.feed.getPosts',
   SocialSoapstoneFeedPost: 'social.soapstone.feed.post',
   SocialSoapstoneFeedRating: 'social.soapstone.feed.rating',
   SocialSoapstoneLocationDefs: 'social.soapstone.location.defs',
   SocialSoapstoneMessageDefs: 'social.soapstone.message.defs',
   SocialSoapstoneTextEnDefs: 'social.soapstone.text.en.defs',
-  SocialSoapstoneTextGetBasePhrases: 'social.soapstone.text.getBasePhrases',
-  SocialSoapstoneTextGetFillPhrases: 'social.soapstone.text.getFillPhrases',
 } as const

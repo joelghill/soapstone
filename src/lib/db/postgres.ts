@@ -1,12 +1,6 @@
 import knex, { Knex } from "knex";
 import { env } from "#/lib/env";
-import {
-  Status,
-  AuthSession,
-  AuthState,
-  Post,
-  Rating,
-} from "#/lib/repositories/entities";
+import { Post, Rating } from "#/lib/repositories/entities";
 
 // Database instance
 let dbInstance: Database | null = null;
@@ -71,4 +65,4 @@ export const closeDb = async () => {
   }
 };
 
-export type Database = Knex<Status & AuthSession & AuthState & Rating & Post>;
+export type Database = Knex<Rating & Post>;

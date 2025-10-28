@@ -20,6 +20,7 @@ dependencies:
 
 environment:
   NODE_ENV: "development"
+  LOG_LEVEL: "debug"
   # Environment Configuration
   PORT: "8080"            # The port your server will listen on
   HOST: "localhost"       # Hostname for the server
@@ -32,7 +33,6 @@ environment:
   DB_NAME: soapstone
   DB_USER: soapstone
   DB_PASSWORD: changeme
-  COOKIE_SECRET: development-secret-key-change-in-production
 
 steps:
   - name: "Install Dependencies"

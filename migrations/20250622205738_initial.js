@@ -21,18 +21,6 @@ exports.up = async function (knex) {
       table.index(["location"]);
     }),
 
-    // Auth session table
-    knex.schema.createTable("auth_session", (table) => {
-      table.string("key").primary();
-      table.text("session").notNullable();
-    }),
-
-    // Auth state table
-    knex.schema.createTable("auth_state", (table) => {
-      table.string("key").primary();
-      table.text("state").notNullable();
-    }),
-
     // Rating table
     knex.schema.createTable("rating", (table) => {
       table.string("uri").primary();
@@ -61,8 +49,6 @@ exports.up = async function (knex) {
 exports.down = async function (knex) {
   return Promise.all([
     knex.schema.dropTableIfExists("rating"),
-    knex.schema.dropTableIfExists("auth_state"),
-    knex.schema.dropTableIfExists("auth_session"),
     knex.schema.dropTableIfExists("post"),
   ]);
 };

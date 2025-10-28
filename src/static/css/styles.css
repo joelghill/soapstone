@@ -37,6 +37,9 @@
   --bs-primary-bg-subtle: #2a1f0a;
   --bs-primary-border-subtle: #4a3515;
   --bs-primary-text-emphasis: #ffd22b;
+
+  --bs-link-color-rgb: 254, 178, 4;
+  --bs-link-hover-color-rgb: 255, 200, 50;
   
   /* Secondary colors with amber undertones */
   --bs-secondary: #2a2a2a;
@@ -74,8 +77,7 @@
   --bs-danger-text-emphasis: #ff6b2b;
   
   /* Light and dark theme colors */
-  --bs-light: #8b7355;
-  --bs-light-rgb: 139, 115, 85;
+  --bs-light: #f8dfc1;
   --bs-light-bg-subtle: #1a1a1a;
   --bs-light-border-subtle: #1a1a1a;
   --bs-light-text-emphasis: #d4c4a0;
@@ -98,67 +100,3 @@ h1, h2, h3, h4, h5, h6,
   font-weight: 600;
 }
 
-/* Enhanced visual effects for dark amber theme */
-.card {
-  box-shadow: 0 2px 8px rgba(112, 14, 1, 0.3);
-}
-
-/* Button styling to ensure amber primary colors */
-.btn-primary {
-  background-color: var(--bs-primary);
-  border-color: var(--bs-primary);
-  color: #0f0a07;
-  box-shadow: 0 2px 6px rgba(254, 178, 4, 0.3);
-}
-
-.btn-primary:hover,
-.btn-primary:focus,
-.btn-primary:focus-visible {
-  background-color: var(--bs-warning);
-  border-color: var(--bs-warning);
-  color: #0f0a07;
-  box-shadow: 0 4px 12px rgba(254, 178, 4, 0.4);
-}
-
-.btn-primary:active,
-.btn-primary.active,
-.btn-primary:active:focus {
-  background-color: #d59900 !important;
-  border-color: #d59900 !important;
-  color: #0f0a07 !important;
-  box-shadow: 0 2px 4px rgba(213, 153, 0, 0.5) !important;
-}
-
-.btn-primary:focus {
-  box-shadow: 0 0 0 0.25rem rgba(254, 178, 4, 0.5) !important;
-}
-
-.btn-outline-primary {
-  color: var(--bs-primary);
-  border-color: var(--bs-primary);
-}
-
-.btn-outline-primary:hover,
-.btn-outline-primary:focus {
-  background-color: var(--bs-primary);
-  border-color: var(--bs-primary);
-  color: #0f0a07;
-}
-
-/* Custom scrollbar for webkit browsers */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--bs-body-bg);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--bs-primary);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--bs-primary-text-emphasis);
-}

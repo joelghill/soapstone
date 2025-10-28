@@ -43,7 +43,9 @@ export function validatePostView<V>(v: V) {
 /** Metadata about the requesting account's relationship with the subject content. */
 export interface ViewerState {
   $type?: 'social.soapstone.feed.defs#viewerState'
-  rating?: string
+  rating_uri?: string
+  /** The rating value. True for positive rating, false for negative rating. */
+  rating_value?: boolean
 }
 
 const hashViewerState = 'viewerState'

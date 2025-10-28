@@ -10,10 +10,13 @@ import { createMessageText, validateMessageType } from "#/lib/utils/message";
  * Repository for managing post-related database operations.
  */
 export class PostRepository {
-  constructor(
-    private db: Database,
-    private st: postgis.KnexPostgis,
-  ) {}
+  private db: Database;
+  private st: postgis.KnexPostgis;
+
+  constructor(db: Database, st: postgis.KnexPostgis) {
+    this.db = db;
+    this.st = st;
+  }
 
   /**
    * Fetches posts by location within a specified radius.
@@ -206,67 +209,5 @@ export class PostRepository {
    */
   async deletePost(uri: string): Promise<void> {
     await this.db("post").where("uri", uri).del();
-  }
-
-  /**
-   * Gets posts in descending order of creation date with pagination.
-   * @param limit - Maximum number of posts to return (default: 20).
-   * @param offset - Number of posts to skip (default: 0).
-   * @returns A promise that resolves to an array of PostView objects.
-   */
-  async getPostsPaginated(
-    limit: number = 20,
-    offset: number = 0,
-  ): Promise<PostView[]> {
-    // Query posts with pagination and ordering
-    const query = this.db("post")
-      .select(
-        "post.uri",
-        "post.author_did",
-        "post.text",
-        "post.location",
-        "post.elevation",
-        "post.created_at",
-        "post.indexed_at",
-        this.st.asText("post.location").as("location_text"),
-      )
-      .orderBy("post.created_at", "desc")
-      .limit(limit)
-      .offset(offset);
-
-    const posts = await query;
-
-    // Get rating counts for all posts
-    const postUris = posts.map((p) => p.uri);
-    const ratingCounts = await this.getRatingCounts(postUris);
-
-    // Create a map for quick rating lookup
-    const ratingsMap = new Map();
-    ratingCounts.forEach((rating) => {
-      ratingsMap.set(rating.post_uri, {
-        positive: parseInt(rating.positive_count) || 0,
-        negative: parseInt(rating.negative_count) || 0,
-      });
-    });
-
-    // Build PostView objects
-    const postViews: PostView[] = posts.map((post) => {
-      const ratings = ratingsMap.get(post.uri) || { positive: 0, negative: 0 };
-
-      // Convert PostGIS POINT text to geo URI format
-      const geoUri = convertPostGISToGeoURI(post.location_text, post.elevation);
-
-      return {
-        uri: post.uri,
-        author_uri: post.author_did,
-        text: post.text,
-        location: geoUri, // Geo URI format
-        positiveRatingsCount: ratings.positive,
-        negativeRatingsCount: ratings.negative,
-        indexedAt: post.indexed_at.toISOString(),
-      };
-    });
-
-    return postViews;
   }
 }

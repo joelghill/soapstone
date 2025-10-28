@@ -4,7 +4,7 @@ A location based messaging app based on the social mechanics in the popular Dark
 This initial version is a proof of concept built on the [Quick start guide to building applications on AT Protocol](https://atproto.com/guides/applications).
 
 ### Planned Features:
-- Signin via OAuth
+- Client side authentication via OAuth
 - REST API for client applications
 - Custom lexicon for message and location data
 - PostGIS integration for geospatial features
@@ -110,7 +110,6 @@ NODE_ENV=development
 HOST=localhost
 PORT=3000
 PUBLIC_URL=http://localhost:3000
-COOKIE_SECRET=your_secure_random_string_here
 ```
 
 ### Database Migrations

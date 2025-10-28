@@ -23,5 +23,4 @@ export const env = cleanEnv(process.env, {
   DB_USER: str({ devDefault: "soapstone" }),
   DB_PASSWORD: str({ devDefault: "changeme" }),
   DB_CA_CERT: str({ devDefault: undefined }),
-  COOKIE_SECRET: str({ devDefault: "00000000000000000000000000000000" }),
 });

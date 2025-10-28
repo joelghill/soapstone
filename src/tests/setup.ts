@@ -10,7 +10,6 @@ process.env.DB_PORT = "5432";
 process.env.DB_NAME = "soapstone_test";
 process.env.DB_USER = "postgres";
 process.env.DB_PASSWORD = "test_password";
-process.env.COOKIE_SECRET = "00000000000000000000000000000000";
 
 // Global test timeout
 jest.setTimeout(30000);

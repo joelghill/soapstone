@@ -29,6 +29,7 @@ services:
     container_name: soapstone_app
     environment:
       NODE_ENV: development
+      LOG_LEVEL: debug
       HOST: 0.0.0.0
       PORT: 3000
       PUBLIC_URL: http://localhost:3000
@@ -37,7 +38,6 @@ services:
       DB_NAME: soapstone
       DB_USER: postgres
       DB_PASSWORD: postgres
-      COOKIE_SECRET: development-secret-key-change-in-production
     ports:
       - "3000:3000"
     volumes:

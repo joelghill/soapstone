@@ -20,13 +20,13 @@ const id = 'social.soapstone.feed.defs'
 export interface PostView {
   $type?: 'social.soapstone.feed.defs#postView'
   uri: string
-  /** The URI of the author of the post. */
-  author_uri: string
+  /** The Handle or DID of the author of the post. */
+  author_did: string
   text: string
   location: string
-  positiveRatingsCount?: number
-  negativeRatingsCount?: number
-  indexedAt: string
+  positive_ratings?: number
+  negative_ratings?: number
+  created_at: string
   viewer?: ViewerState
 }
 

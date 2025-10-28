@@ -76,12 +76,12 @@ export class PostRepository {
 
       return {
         uri: post.uri,
-        author_uri: post.author_did,
+        author_did: post.author_did,
         text: post.text,
         location: geoUri, // Geo URI format
-        positiveRatingsCount: ratings.positive,
-        negativeRatingsCount: ratings.negative,
-        indexedAt: post.indexed_at.toISOString(),
+        positive_ratings: ratings.positive,
+        negative_ratings: ratings.negative,
+        created_at: post.created_at.toISOString(),
       };
     });
 

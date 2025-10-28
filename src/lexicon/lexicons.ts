@@ -324,16 +324,16 @@ export const schemaDict = {
     defs: {
       postView: {
         type: 'object',
-        required: ['uri', 'author_uri', 'text', 'location', 'indexedAt'],
+        required: ['uri', 'author_did', 'text', 'location', 'created_at'],
         properties: {
           uri: {
             type: 'string',
             format: 'at-uri',
           },
-          author_uri: {
+          author_did: {
             type: 'string',
-            format: 'at-uri',
-            description: 'The URI of the author of the post.',
+            format: 'at-identifier',
+            description: 'The Handle or DID of the author of the post.',
           },
           text: {
             type: 'string',
@@ -342,13 +342,13 @@ export const schemaDict = {
             type: 'string',
             format: 'uri',
           },
-          positiveRatingsCount: {
+          positive_ratings: {
             type: 'integer',
           },
-          negativeRatingsCount: {
+          negative_ratings: {
             type: 'integer',
           },
-          indexedAt: {
+          created_at: {
             type: 'string',
             format: 'datetime',
           },

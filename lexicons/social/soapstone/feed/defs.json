@@ -4,13 +4,13 @@
   "defs": {
     "postView": {
       "type": "object",
-      "required": ["uri", "author_uri", "text", "location", "indexedAt"],
+      "required": ["uri", "author_did", "text", "location", "created_at"],
       "properties": {
         "uri": { "type": "string", "format": "at-uri" },
-        "author_uri": {
+        "author_did": {
           "type": "string",
-          "format": "at-uri",
-          "description": "The URI of the author of the post."
+          "format": "at-identifier",
+          "description": "The Handle or DID of the author of the post."
         },
         "text": {
           "type": "string"
@@ -19,9 +19,9 @@
           "type": "string",
           "format": "uri"
         },
-        "positiveRatingsCount": { "type": "integer" },
-        "negativeRatingsCount": { "type": "integer" },
-        "indexedAt": { "type": "string", "format": "datetime" },
+        "positive_ratings": { "type": "integer" },
+        "negative_ratings": { "type": "integer" },
+        "created_at": { "type": "string", "format": "datetime" },
         "viewer": { "type": "ref", "ref": "#viewerState" }
       }
     },

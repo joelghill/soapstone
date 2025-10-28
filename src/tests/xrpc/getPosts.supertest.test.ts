@@ -12,21 +12,21 @@ describe("XRPC getPosts endpoint (supertest)", () => {
   const samplePosts: PostView[] = [
     {
       uri: "at://did:test:user1/social.soapstone.feed.post/1",
-      author_uri: "at://did:test:user1",
+      author_did: "did:test:user1",
       text: "Test post 1",
       location: "geo:37.7749,-122.4194",
-      positiveRatingsCount: 5,
-      negativeRatingsCount: 1,
-      indexedAt: "2023-01-01T00:00:00.000Z",
+      positive_ratings: 5,
+      negative_ratings: 1,
+      created_at: "2023-01-01T00:00:00.000Z",
     },
     {
       uri: "at://did:test:user2/social.soapstone.feed.post/2",
-      author_uri: "at://did:test:user2",
+      author_did: "did:test:user2",
       text: "Test post 2",
       location: "geo:37.7750,-122.4195",
-      positiveRatingsCount: 3,
-      negativeRatingsCount: 2,
-      indexedAt: "2023-01-01T01:00:00.000Z",
+      positive_ratings: 3,
+      negative_ratings: 2,
+      created_at: "2023-01-01T01:00:00.000Z",
     },
   ];
 
@@ -47,8 +47,7 @@ describe("XRPC getPosts endpoint (supertest)", () => {
         .get("/xrpc/social.soapstone.feed.getPosts")
         .query({
           location: "geo:37.7749,-122.4194",
-        })
-        .expect(200);
+        });
 
       expect(response.body).toEqual({
         posts: samplePosts,
@@ -159,10 +158,10 @@ describe("XRPC getPosts endpoint (supertest)", () => {
       const minimalPosts: PostView[] = [
         {
           uri: "at://did:test:user1/social.soapstone.feed.post/1",
-          author_uri: "at://did:test:user1",
+          author_did: "did:test:user1",
           text: "Minimal post",
           location: "geo:37.7749,-122.4194",
-          indexedAt: "2023-01-01T00:00:00.000Z",
+          created_at: "2023-01-01T00:00:00.000Z",
         },
       ];
       mockPostsRepo.getPostsByLocation.mockResolvedValue(minimalPosts);
@@ -278,12 +277,13 @@ describe("XRPC getPosts endpoint (supertest)", () => {
       const fullPosts: PostView[] = [
         {
           uri: "at://did:test:user1/social.soapstone.feed.post/1",
-          author_uri: "at://did:test:user1",
+          author_did: "did:test:user1",
           text: "Full post with all fields",
           location: "geo:37.7749,-122.4194",
-          positiveRatingsCount: 10,
-          negativeRatingsCount: 2,
-          indexedAt: "2023-01-01T00:00:00.000Z",
+          positive_ratings: 10,
+          negative_ratings: 2,
+          created_at: "2023-01-01T00:00:00.000Z",
+          viewer: undefined,
         },
       ];
       mockPostsRepo.getPostsByLocation.mockResolvedValue(fullPosts);

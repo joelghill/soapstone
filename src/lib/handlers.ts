@@ -29,7 +29,8 @@ export class SoapStoneLexiconHandler {
       this.ctx.logger.error({ err }, "Error fetching posts");
       return {
         status: 500,
-        message: err instanceof Error ? err.message : "Internal Server Error",
+        message:
+          err instanceof Error ? err.message : `Internal Server Error: ${err}`,
       };
     }
   };

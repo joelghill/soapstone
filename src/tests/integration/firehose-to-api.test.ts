@@ -6,6 +6,7 @@ import { SoapStoneServer } from "#/lib/server";
 import { IdResolver } from "@atproto/identity";
 import { Firehose } from "@atproto/sync";
 import { PostView } from "#/lexicon/types/social/soapstone/feed/defs";
+import pino from "pino";
 
 // Mock the Firehose
 jest.mock("@atproto/sync", () => ({
@@ -16,6 +17,7 @@ describe("Firehose to API Integration Test", () => {
   let server: SoapStoneServer;
   let mockPostsRepo: jest.Mocked<PostRepository>;
   let mockIdResolver: jest.Mocked<IdResolver>;
+  let mockLogger: pino.Logger;
   let capturedConfig: any;
 
   // The event payload that will be delivered by the firehose
@@ -64,6 +66,9 @@ describe("Firehose to API Integration Test", () => {
     jest.clearAllMocks();
     jest.unmock("pino");
 
+    // Create a mock logger
+    mockLogger = pino({ level: "silent" });
+
     // Setup Firehose mock to capture config
     (Firehose as jest.Mock).mockImplementation((config) => {
       capturedConfig = config;
@@ -82,7 +87,7 @@ describe("Firehose to API Integration Test", () => {
   describe("End-to-end flow: Firehose event to API retrieval", () => {
     it("should process a firehose event and then retrieve the post via API", async () => {
       // Step 1: Create the ingester
-      createIngester(mockPostsRepo, mockIdResolver);
+      createIngester(mockPostsRepo, mockIdResolver, mockLogger);
 
       // Step 2: Simulate the firehose delivering an event
       await capturedConfig.handleEvent(firehoseEvent);
@@ -134,7 +139,7 @@ describe("Firehose to API Integration Test", () => {
 
     it("should handle multiple firehose events and retrieve all posts", async () => {
       // Create the ingester
-      createIngester(mockPostsRepo, mockIdResolver);
+      createIngester(mockPostsRepo, mockIdResolver, mockLogger);
 
       // Process first event
       await capturedConfig.handleEvent(firehoseEvent);
@@ -209,7 +214,7 @@ describe("Firehose to API Integration Test", () => {
 
     it("should handle delete event and not return deleted post", async () => {
       // Create the ingester
-      createIngester(mockPostsRepo, mockIdResolver);
+      createIngester(mockPostsRepo, mockIdResolver, mockLogger);
 
       // First create a post
       await capturedConfig.handleEvent(firehoseEvent);
@@ -254,7 +259,7 @@ describe("Firehose to API Integration Test", () => {
 
     it("should not create post for invalid event and return empty results", async () => {
       // Create the ingester
-      createIngester(mockPostsRepo, mockIdResolver);
+      createIngester(mockPostsRepo, mockIdResolver, mockLogger);
 
       // Try to process an invalid event (missing required fields)
       const invalidEvent = {
@@ -308,7 +313,7 @@ describe("Firehose to API Integration Test", () => {
 
     it("should handle errors during firehose processing gracefully", async () => {
       // Create the ingester
-      createIngester(mockPostsRepo, mockIdResolver);
+      createIngester(mockPostsRepo, mockIdResolver, mockLogger);
 
       // Mock createPost to throw an error
       const dbError = new Error("Database connection failed");
@@ -338,7 +343,7 @@ describe("Firehose to API Integration Test", () => {
 
     it("should correctly transform message to text in the post", async () => {
       // Create the ingester
-      createIngester(mockPostsRepo, mockIdResolver);
+      createIngester(mockPostsRepo, mockIdResolver, mockLogger);
 
       // Process event
       await capturedConfig.handleEvent(firehoseEvent);

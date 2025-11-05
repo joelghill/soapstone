@@ -3,10 +3,12 @@ import { IdResolver } from "@atproto/identity";
 import { Firehose } from "@atproto/sync";
 import * as Post from "#/lexicon/types/social/soapstone/feed/post";
 import { PostRepository } from "./repositories/post_repo";
-import { env } from "./env";
 
-export function createIngester(posts: PostRepository, idResolver: IdResolver) {
-  const logger = pino({ name: "firehose ingestion", level: env.LOG_LEVEL });
+export function createIngester(
+  posts: PostRepository,
+  idResolver: IdResolver,
+  logger: pino.Logger,
+) {
   return new Firehose({
     idResolver,
     handleEvent: async (evt: any) => {
@@ -16,17 +18,15 @@ export function createIngester(posts: PostRepository, idResolver: IdResolver) {
         const record = evt.record as Post.Record;
 
         // Log when we see any soapstone event
-        if (evt.collection?.startsWith("social.soapstone")) {
-          logger.debug(
-            {
-              collection: evt.collection,
-              uri: evt.uri,
-              did: evt.did,
-              event: evt.event,
-            },
-            "soapstone event detected",
-          );
-        }
+        logger.debug(
+          {
+            collection: evt.collection,
+            uri: evt.uri,
+            did: evt.did,
+            event: evt.event,
+          },
+          "soapstone event detected",
+        );
 
         // If the write is a valid post update
         if (
@@ -78,7 +78,7 @@ export function createIngester(posts: PostRepository, idResolver: IdResolver) {
     onError: (err: any) => {
       logger.error({ err }, "error on firehose ingestion");
     },
-    // filterCollections: ["xyz.statusphere.status"],
+    filterCollections: ["social.soapstone.feed.post"],
     excludeIdentity: true,
     excludeAccount: true,
   });

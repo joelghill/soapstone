@@ -2,6 +2,7 @@ import { createIngester } from "#/lib/ingester";
 import { PostRepository } from "#/lib/repositories/post_repo";
 import { IdResolver } from "@atproto/identity";
 import { Firehose } from "@atproto/sync";
+import pino from "pino";
 
 // Mock the Firehose
 jest.mock("@atproto/sync", () => ({
@@ -12,6 +13,7 @@ describe("Ingester", () => {
   let mockPostsRepo: jest.Mocked<PostRepository>;
   let mockIdResolver: jest.Mocked<IdResolver>;
   let mockFirehose: jest.Mocked<Firehose>;
+  let mockLogger: pino.Logger;
   let capturedConfig: any;
 
   beforeEach(() => {
@@ -19,6 +21,9 @@ describe("Ingester", () => {
 
     // Unmock pino to use real implementation
     jest.unmock("pino");
+
+    // Create a mock logger
+    mockLogger = pino({ level: "silent" });
 
     // Setup Firehose mock to capture config
     (Firehose as jest.Mock).mockImplementation((config) => {
@@ -45,7 +50,7 @@ describe("Ingester", () => {
 
   describe("handleEvent - create event", () => {
     it("should write a valid post event to the database", async () => {
-      createIngester(mockPostsRepo, mockIdResolver);
+      createIngester(mockPostsRepo, mockIdResolver, mockLogger);
 
       const event = {
         event: "create",
@@ -101,7 +106,7 @@ describe("Ingester", () => {
     });
 
     it("should handle a post with multiple message parts", async () => {
-      createIngester(mockPostsRepo, mockIdResolver);
+      createIngester(mockPostsRepo, mockIdResolver, mockLogger);
 
       const event = {
         event: "create",
@@ -177,7 +182,7 @@ describe("Ingester", () => {
     });
 
     it("should ignore events from other collections", async () => {
-      createIngester(mockPostsRepo, mockIdResolver);
+      createIngester(mockPostsRepo, mockIdResolver, mockLogger);
 
       const event = {
         event: "create",
@@ -199,7 +204,7 @@ describe("Ingester", () => {
     });
 
     it("should ignore events with invalid record type", async () => {
-      createIngester(mockPostsRepo, mockIdResolver);
+      createIngester(mockPostsRepo, mockIdResolver, mockLogger);
 
       const event = {
         event: "create",
@@ -222,7 +227,7 @@ describe("Ingester", () => {
     });
 
     it("should ignore events with missing required fields", async () => {
-      createIngester(mockPostsRepo, mockIdResolver);
+      createIngester(mockPostsRepo, mockIdResolver, mockLogger);
       const event = {
         event: "create",
         did: "did:plc:test123",
@@ -247,7 +252,7 @@ describe("Ingester", () => {
 
   describe("handleEvent - delete event", () => {
     it("should delete a post when receiving a delete event", async () => {
-      createIngester(mockPostsRepo, mockIdResolver);
+      createIngester(mockPostsRepo, mockIdResolver, mockLogger);
       const event = {
         event: "delete",
         did: "did:plc:yaknny2cxnqwtb63apit6j2q",
@@ -268,7 +273,7 @@ describe("Ingester", () => {
     });
 
     it("should ignore delete events from other collections", async () => {
-      createIngester(mockPostsRepo, mockIdResolver);
+      createIngester(mockPostsRepo, mockIdResolver, mockLogger);
       const event = {
         event: "delete",
         did: "did:plc:test123",
@@ -287,7 +292,7 @@ describe("Ingester", () => {
 
   describe("handleEvent - other events", () => {
     it("should ignore update events", async () => {
-      createIngester(mockPostsRepo, mockIdResolver);
+      createIngester(mockPostsRepo, mockIdResolver, mockLogger);
       const event = {
         event: "update",
         did: "did:plc:test123",
@@ -306,7 +311,7 @@ describe("Ingester", () => {
     });
 
     it("should ignore events without a recognized event type", async () => {
-      createIngester(mockPostsRepo, mockIdResolver);
+      createIngester(mockPostsRepo, mockIdResolver, mockLogger);
       const event = {
         event: "unknown",
         did: "did:plc:test123",
@@ -330,7 +335,7 @@ describe("Ingester", () => {
       const dbError = new Error("Database connection failed");
       mockPostsRepo.createPost.mockRejectedValue(dbError);
 
-      createIngester(mockPostsRepo, mockIdResolver);
+      createIngester(mockPostsRepo, mockIdResolver, mockLogger);
 
       const event = {
         event: "create",
@@ -372,7 +377,7 @@ describe("Ingester", () => {
       const dbError = new Error("Database connection failed");
       mockPostsRepo.deletePost.mockRejectedValue(dbError);
 
-      createIngester(mockPostsRepo, mockIdResolver);
+      createIngester(mockPostsRepo, mockIdResolver, mockLogger);
 
       const event = {
         event: "delete",

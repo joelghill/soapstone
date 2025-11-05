@@ -104,7 +104,11 @@ export class SoapStoneServer {
       // Create our repositories
       const posts_repo = new PostRepository(db, st);
       const baseIdResolver = createIdResolver();
-      const ingester = createIngester(posts_repo, baseIdResolver);
+      const ingester = createIngester(
+        posts_repo,
+        baseIdResolver,
+        logger.child({ name: "firehose ingestion" }),
+      );
       ctx = {
         ingester,
         logger,

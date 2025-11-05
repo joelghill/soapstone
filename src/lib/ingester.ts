@@ -3,9 +3,10 @@ import { IdResolver } from "@atproto/identity";
 import { Firehose } from "@atproto/sync";
 import * as Post from "#/lexicon/types/social/soapstone/feed/post";
 import { PostRepository } from "./repositories/post_repo";
+import { env } from "./env";
 
 export function createIngester(posts: PostRepository, idResolver: IdResolver) {
-  const logger = pino({ name: "firehose ingestion" });
+  const logger = pino({ name: "firehose ingestion", level: env.LOG_LEVEL });
   return new Firehose({
     idResolver,
     handleEvent: async (evt: any) => {
@@ -13,6 +14,20 @@ export function createIngester(posts: PostRepository, idResolver: IdResolver) {
       if (evt.event === "create") {
         const now = new Date();
         const record = evt.record as Post.Record;
+
+        // Log when we see any soapstone event
+        if (evt.collection?.startsWith("social.soapstone")) {
+          logger.debug(
+            {
+              collection: evt.collection,
+              uri: evt.uri,
+              did: evt.did,
+              event: evt.event,
+            },
+            "soapstone event detected",
+          );
+        }
+
         // If the write is a valid post update
         if (
           evt.collection === "social.soapstone.feed.post" &&
@@ -23,21 +38,41 @@ export function createIngester(posts: PostRepository, idResolver: IdResolver) {
             { time: now.toISOString(), uri: evt.uri, record },
             "ingesting event",
           );
+
           // Store the post in our PostgreSQL database
-          await posts.createPost({
-            uri: evt.uri.toString(),
-            authorDid: evt.did,
-            message: record.message,
-            geoUri: record.location.uri,
-            createdAt: evt.time,
-          });
+          try {
+            await posts.createPost({
+              uri: evt.uri.toString(),
+              authorDid: evt.did,
+              message: record.message,
+              geoUri: record.location.uri,
+              createdAt: evt.time,
+            });
+          } catch (error) {
+            logger.error(
+              { error, uri: evt.uri, did: evt.did },
+              "failed to write post to database",
+            );
+          }
         }
       } else if (
         evt.event === "delete" &&
         evt.collection === "social.soapstone.feed.post"
       ) {
+        logger.debug(
+          { collection: evt.collection, uri: evt.uri, event: evt.event },
+          "soapstone delete event detected",
+        );
+
         // Remove the post from our PostgreSQL database
-        await posts.deletePost(evt.uri.toString());
+        try {
+          await posts.deletePost(evt.uri.toString());
+        } catch (error) {
+          logger.error(
+            { error, uri: evt.uri },
+            "failed to delete post from database",
+          );
+        }
       }
     },
     onError: (err: any) => {

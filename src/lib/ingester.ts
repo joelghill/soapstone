@@ -4,6 +4,30 @@ import { Firehose } from "@atproto/sync";
 import * as Post from "#/lexicon/types/social/soapstone/feed/post";
 import { PostRepository } from "./repositories/post_repo";
 
+// Errors that should trigger reconnection
+const RECONNECTABLE_ERROR_TYPES = [
+  "FirehoseSubscriptionError",
+  "ECONNRESET",
+  "ETIMEDOUT",
+  "ENOTFOUND",
+];
+
+function isReconnectableError(err: any): boolean {
+  // Check error type
+  if (err?.type && RECONNECTABLE_ERROR_TYPES.includes(err.type)) {
+    return true;
+  }
+  // Check error code
+  if (err?.code && RECONNECTABLE_ERROR_TYPES.includes(err.code)) {
+    return true;
+  }
+  // Check nested error
+  if (err?.cause) {
+    return isReconnectableError(err.cause);
+  }
+  return false;
+}
+
 export function createIngester(
   posts: PostRepository,
   idResolver: IdResolver,
@@ -77,9 +101,17 @@ export function createIngester(
     },
     onError: (err: any) => {
       logger.error({ err }, "error on firehose ingestion");
+      // Re-throw reconnectable errors to trigger the Firehose's built-in reconnection
+      if (isReconnectableError(err)) {
+        logger.info("reconnectable error detected, will attempt reconnection");
+        throw err;
+      }
     },
     filterCollections: ["social.soapstone.feed.post"],
     excludeIdentity: true,
     excludeAccount: true,
+    unauthenticatedHandles: true,
+    unauthenticatedCommits: true,
+    subscriptionReconnectDelay: 5000, // Wait 5 seconds before reconnecting
   });
 }

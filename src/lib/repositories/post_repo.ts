@@ -31,13 +31,10 @@ export class PostRepository {
     // Parse geo URI to get coordinates
     const geoData = parseGeoURI(geoUri);
 
-    // Create a point for the search location
-    const searchPoint = this.st.geomFromText(
-      `POINT(${geoData.longitude} ${geoData.latitude})`,
-      4326,
-    );
-
-    // Query posts within the specified radius
+    // Query posts within the specified radius.
+    // The location column is geometry(POINT, 4326), so ST_DWithin would
+    // measure distance in degrees (the SRID's units). Cast both geometries to
+    // geography so the radius is interpreted in meters.
     const query = this.db("post")
       .select(
         "post.uri",
@@ -49,7 +46,10 @@ export class PostRepository {
         "post.indexed_at",
         this.st.asText("post.location").as("location_text"),
       )
-      .where(this.st.dwithin("post.location", searchPoint, radius))
+      .whereRaw(
+        "ST_DWithin(post.location::geography, ST_GeomFromText(?, 4326)::geography, ?)",
+        [`POINT(${geoData.longitude} ${geoData.latitude})`, radius],
+      )
       .orderBy("post.created_at", "desc");
 
     const posts = await query;

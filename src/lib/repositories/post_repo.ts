@@ -59,7 +59,10 @@ export class PostRepository {
     const ratingCounts = await this.getRatingCounts(postUris);
 
     // Create a map for quick rating lookup
-    const ratingsMap = new Map();
+    const ratingsMap = new Map<
+      string,
+      { positive: number; negative: number }
+    >();
     ratingCounts.forEach((rating) => {
       ratingsMap.set(rating.post_uri, {
         positive: parseInt(rating.positive_count) || 0,
@@ -109,17 +112,22 @@ export class PostRepository {
     // Generate text from message
     const text = createMessageText(post.message);
 
-    await this.db("post").insert({
-      uri: post.uri,
-      author_did: post.authorDid,
-      text: text,
-      location: this.db.raw("ST_GeomFromText(?, 4326)", [
-        `POINT(${geoData.longitude} ${geoData.latitude})`,
-      ]),
-      elevation: geoData.altitude || null,
-      created_at: post.createdAt,
-      indexed_at: new Date().toISOString(),
-    } as any);
+    // Ignore conflicts so replayed firehose events (e.g. after a reconnect)
+    // are idempotent rather than raising duplicate-key errors.
+    await this.db("post")
+      .insert({
+        uri: post.uri,
+        author_did: post.authorDid,
+        text: text,
+        location: this.db.raw("ST_GeomFromText(?, 4326)", [
+          `POINT(${geoData.longitude} ${geoData.latitude})`,
+        ]),
+        elevation: geoData.altitude ?? null,
+        created_at: post.createdAt,
+        indexed_at: new Date().toISOString(),
+      } as any)
+      .onConflict("uri")
+      .ignore();
   }
 
   /**
@@ -133,7 +141,6 @@ export class PostRepository {
     return await this.db("rating")
       .select("post_uri")
       .whereIn("post_uri", postUris)
-      .count("* as total_ratings")
       .select(
         this.db.raw(
           "SUM(CASE WHEN positive = true THEN 1 ELSE 0 END) as positive_count",
@@ -183,14 +190,19 @@ export class PostRepository {
     positive: boolean;
     createdAt: string;
   }): Promise<void> {
-    await this.db("rating").insert({
-      uri: rating.uri,
-      author_did: rating.authorDid,
-      post_uri: rating.postUri,
-      positive: rating.positive,
-      created_at: rating.createdAt,
-      indexed_at: new Date().toISOString(),
-    } as any);
+    // Ignore conflicts so replayed firehose events (e.g. after a reconnect)
+    // are idempotent rather than raising duplicate-key errors.
+    await this.db("rating")
+      .insert({
+        uri: rating.uri,
+        author_did: rating.authorDid,
+        post_uri: rating.postUri,
+        positive: rating.positive,
+        created_at: rating.createdAt,
+        indexed_at: new Date().toISOString(),
+      } as any)
+      .onConflict("uri")
+      .ignore();
   }
 
   /**

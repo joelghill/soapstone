@@ -319,10 +319,10 @@ describe("Firehose to API Integration Test", () => {
       const dbError = new Error("Database connection failed");
       mockPostsRepo.createPost.mockRejectedValue(dbError);
 
-      // Process the event (should throw error)
-      await expect(capturedConfig.handleEvent(firehoseEvent)).rejects.toThrow(
-        "Database connection failed",
-      );
+      // Process the event (the error is swallowed and logged, not thrown)
+      await expect(
+        capturedConfig.handleEvent(firehoseEvent),
+      ).resolves.toBeUndefined();
 
       // Verify createPost was attempted
       expect(mockPostsRepo.createPost).toHaveBeenCalledTimes(1);

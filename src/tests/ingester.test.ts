@@ -181,6 +181,70 @@ describe("Ingester", () => {
       });
     });
 
+    it("should write a valid rating event to the database", async () => {
+      createIngester(mockPostsRepo, mockIdResolver, mockLogger);
+
+      const event = {
+        event: "create",
+        did: "did:plc:rater123",
+        uri: {
+          toString: () =>
+            "at://did:plc:rater123/social.soapstone.feed.rating/rate1",
+        },
+        collection: "social.soapstone.feed.rating",
+        time: "2025-11-05T12:00:00.000Z",
+        record: {
+          $type: "social.soapstone.feed.rating",
+          message: {
+            uri: "at://did:plc:author/social.soapstone.feed.post/post1",
+            cid: "bafyreibvjvcv745gig4mvqs4hctx4zfkono4rjejm2ta6gtyay4qewdldi",
+          },
+          value: true,
+          via: {
+            uri: "at://did:plc:author/social.soapstone.feed.post/post1",
+            cid: "bafyreibvjvcv745gig4mvqs4hctx4zfkono4rjejm2ta6gtyay4qewdldi",
+          },
+          createdAt: "2025-11-05T12:00:00.000Z",
+        },
+      };
+
+      await capturedConfig.handleEvent(event);
+
+      expect(mockPostsRepo.createRating).toHaveBeenCalledTimes(1);
+      expect(mockPostsRepo.createRating).toHaveBeenCalledWith({
+        uri: "at://did:plc:rater123/social.soapstone.feed.rating/rate1",
+        authorDid: "did:plc:rater123",
+        postUri: "at://did:plc:author/social.soapstone.feed.post/post1",
+        positive: true,
+        createdAt: "2025-11-05T12:00:00.000Z",
+      });
+      expect(mockPostsRepo.createPost).not.toHaveBeenCalled();
+    });
+
+    it("should ignore rating events with an invalid record", async () => {
+      createIngester(mockPostsRepo, mockIdResolver, mockLogger);
+
+      const event = {
+        event: "create",
+        did: "did:plc:rater123",
+        uri: {
+          toString: () =>
+            "at://did:plc:rater123/social.soapstone.feed.rating/rate1",
+        },
+        collection: "social.soapstone.feed.rating",
+        time: "2025-11-05T12:00:00.000Z",
+        record: {
+          $type: "social.soapstone.feed.rating",
+          // Missing message, value, and via fields
+          createdAt: "2025-11-05T12:00:00.000Z",
+        },
+      };
+
+      await capturedConfig.handleEvent(event);
+
+      expect(mockPostsRepo.createRating).not.toHaveBeenCalled();
+    });
+
     it("should ignore events from other collections", async () => {
       createIngester(mockPostsRepo, mockIdResolver, mockLogger);
 
@@ -272,6 +336,28 @@ describe("Ingester", () => {
       );
     });
 
+    it("should delete a rating when receiving a delete event", async () => {
+      createIngester(mockPostsRepo, mockIdResolver, mockLogger);
+      const event = {
+        event: "delete",
+        did: "did:plc:rater123",
+        uri: {
+          toString: () =>
+            "at://did:plc:rater123/social.soapstone.feed.rating/rate1",
+        },
+        collection: "social.soapstone.feed.rating",
+        time: "2025-11-05T12:00:00.000Z",
+      };
+
+      await capturedConfig.handleEvent(event);
+
+      expect(mockPostsRepo.deleteRating).toHaveBeenCalledTimes(1);
+      expect(mockPostsRepo.deleteRating).toHaveBeenCalledWith(
+        "at://did:plc:rater123/social.soapstone.feed.rating/rate1",
+      );
+      expect(mockPostsRepo.deletePost).not.toHaveBeenCalled();
+    });
+
     it("should ignore delete events from other collections", async () => {
       createIngester(mockPostsRepo, mockIdResolver, mockLogger);
       const event = {
@@ -331,9 +417,10 @@ describe("Ingester", () => {
   });
 
   describe("error handling", () => {
-    it("should handle database errors when creating a post", async () => {
+    it("should swallow and log database errors when creating a post", async () => {
       const dbError = new Error("Database connection failed");
       mockPostsRepo.createPost.mockRejectedValue(dbError);
+      const errorSpy = jest.spyOn(mockLogger, "error");
 
       createIngester(mockPostsRepo, mockIdResolver, mockLogger);
 
@@ -367,15 +454,19 @@ describe("Ingester", () => {
         },
       };
 
-      // The handler should throw the error up
-      await expect(capturedConfig.handleEvent(event)).rejects.toThrow(
-        "Database connection failed",
+      // The handler should swallow the error and log it, not throw — the
+      // firehose cursor advances regardless, so throwing buys no redelivery.
+      await expect(capturedConfig.handleEvent(event)).resolves.toBeUndefined();
+      expect(errorSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ error: dbError }),
+        "failed to write post to database",
       );
     });
 
-    it("should handle database errors when deleting a post", async () => {
+    it("should swallow and log database errors when deleting a post", async () => {
       const dbError = new Error("Database connection failed");
       mockPostsRepo.deletePost.mockRejectedValue(dbError);
+      const errorSpy = jest.spyOn(mockLogger, "error");
 
       createIngester(mockPostsRepo, mockIdResolver, mockLogger);
 
@@ -390,9 +481,11 @@ describe("Ingester", () => {
         time: "2025-11-04T10:30:00.000Z",
       };
 
-      // The handler should throw the error up
-      await expect(capturedConfig.handleEvent(event)).rejects.toThrow(
-        "Database connection failed",
+      // The handler should swallow the error and log it, not throw.
+      await expect(capturedConfig.handleEvent(event)).resolves.toBeUndefined();
+      expect(errorSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ error: dbError }),
+        "failed to delete post from database",
       );
     });
   });

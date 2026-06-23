@@ -324,11 +324,22 @@ export const schemaDict = {
     defs: {
       postView: {
         type: 'object',
-        required: ['uri', 'author_did', 'text', 'location', 'created_at'],
+        required: [
+          'uri',
+          'cid',
+          'author_did',
+          'text',
+          'location',
+          'created_at',
+        ],
         properties: {
           uri: {
             type: 'string',
             format: 'at-uri',
+          },
+          cid: {
+            type: 'string',
+            format: 'cid',
           },
           author_did: {
             type: 'string',
@@ -371,42 +382,6 @@ export const schemaDict = {
             type: 'boolean',
             description:
               'The rating value. True for positive rating, false for negative rating.',
-          },
-        },
-      },
-      createPostSchema: {
-        type: 'object',
-        required: ['message', 'location'],
-        properties: {
-          message: {
-            type: 'ref',
-            ref: 'lex:social.soapstone.message.defs#message',
-          },
-          location: {
-            type: 'ref',
-            ref: 'lex:social.soapstone.location.defs#location',
-          },
-        },
-      },
-      createPostResponse: {
-        type: 'object',
-        required: ['uri', 'cid'],
-        properties: {
-          uri: {
-            type: 'string',
-            format: 'at-uri',
-          },
-          cid: {
-            type: 'string',
-            format: 'cid',
-          },
-          commit: {
-            type: 'ref',
-            ref: 'lex:com.atproto.repo.defs#commitMeta',
-          },
-          validationStatus: {
-            type: 'string',
-            knownValues: ['valid', 'unknown'],
           },
         },
       },

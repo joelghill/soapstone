@@ -28,6 +28,9 @@ describe("Firehose to API Integration Test", () => {
       toString: () =>
         "at://did:plc:yaknny2cxnqwtb63apit6j2q/social.soapstone.feed.post/3m4qfu745jj2a",
     },
+    cid: {
+      toString: () => "bafyreidfayvfuwqa7qlnopdjiqrxzs6blmoeu4rujcjtnci5beludirz2a",
+    },
     collection: "social.soapstone.feed.post",
     time: "2025-11-03T16:10:29.091945Z",
     record: {
@@ -54,6 +57,7 @@ describe("Firehose to API Integration Test", () => {
   // The post that should be returned after the event is processed
   const expectedPost: PostView = {
     uri: "at://did:plc:yaknny2cxnqwtb63apit6j2q/social.soapstone.feed.post/3m4qfu745jj2a",
+    cid: "bafyreidfayvfuwqa7qlnopdjiqrxzs6blmoeu4rujcjtnci5beludirz2a",
     author_did: "did:plc:yaknny2cxnqwtb63apit6j2q",
     text: "Be wary of Rear",
     location: "geo:52.0992366,-106.6303074,486.5;u=17.988000869750977",
@@ -96,6 +100,7 @@ describe("Firehose to API Integration Test", () => {
       expect(mockPostsRepo.createPost).toHaveBeenCalledTimes(1);
       expect(mockPostsRepo.createPost).toHaveBeenCalledWith({
         uri: "at://did:plc:yaknny2cxnqwtb63apit6j2q/social.soapstone.feed.post/3m4qfu745jj2a",
+        cid: "bafyreidfayvfuwqa7qlnopdjiqrxzs6blmoeu4rujcjtnci5beludirz2a",
         authorDid: "did:plc:yaknny2cxnqwtb63apit6j2q",
         message: [
           {
@@ -152,6 +157,9 @@ describe("Firehose to API Integration Test", () => {
           toString: () =>
             "at://did:plc:another_user/social.soapstone.feed.post/abc123",
         },
+        cid: {
+          toString: () => "bafyreihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku",
+        },
         collection: "social.soapstone.feed.post",
         time: "2025-11-03T17:00:00.000Z",
         record: {
@@ -177,6 +185,7 @@ describe("Firehose to API Integration Test", () => {
 
       const secondPost: PostView = {
         uri: "at://did:plc:another_user/social.soapstone.feed.post/abc123",
+        cid: "bafyreihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku",
         author_did: "did:plc:another_user",
         text: "Try Attacking",
         location: "geo:52.0995,-106.6305,490",

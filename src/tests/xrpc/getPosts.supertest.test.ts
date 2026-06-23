@@ -12,6 +12,7 @@ describe("XRPC getPosts endpoint (supertest)", () => {
   const samplePosts: PostView[] = [
     {
       uri: "at://did:test:user1/social.soapstone.feed.post/1",
+      cid: "bafyreidfayvfuwqa7qlnopdjiqrxzs6blmoeu4rujcjtnci5beludirz2a",
       author_did: "did:test:user1",
       text: "Test post 1",
       location: "geo:37.7749,-122.4194",
@@ -21,6 +22,7 @@ describe("XRPC getPosts endpoint (supertest)", () => {
     },
     {
       uri: "at://did:test:user2/social.soapstone.feed.post/2",
+      cid: "bafyreihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku",
       author_did: "did:test:user2",
       text: "Test post 2",
       location: "geo:37.7750,-122.4195",
@@ -158,6 +160,7 @@ describe("XRPC getPosts endpoint (supertest)", () => {
       const minimalPosts: PostView[] = [
         {
           uri: "at://did:test:user1/social.soapstone.feed.post/1",
+          cid: "bafyreidfayvfuwqa7qlnopdjiqrxzs6blmoeu4rujcjtnci5beludirz2a",
           author_did: "did:test:user1",
           text: "Minimal post",
           location: "geo:37.7749,-122.4194",
@@ -277,6 +280,7 @@ describe("XRPC getPosts endpoint (supertest)", () => {
       const fullPosts: PostView[] = [
         {
           uri: "at://did:test:user1/social.soapstone.feed.post/1",
+          cid: "bafyreidfayvfuwqa7qlnopdjiqrxzs6blmoeu4rujcjtnci5beludirz2a",
           author_did: "did:test:user1",
           text: "Full post with all fields",
           location: "geo:37.7749,-122.4194",

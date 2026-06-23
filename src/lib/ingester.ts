@@ -48,6 +48,7 @@ export function createIngester(
             try {
               await posts.createPost({
                 uri: evt.uri.toString(),
+                cid: evt.cid.toString(),
                 authorDid: evt.did,
                 message: record.message,
                 geoUri: record.location.uri,

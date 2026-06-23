@@ -38,6 +38,7 @@ export class PostRepository {
     const query = this.db("post")
       .select(
         "post.uri",
+        "post.cid",
         "post.author_did",
         "post.text",
         "post.location",
@@ -79,6 +80,7 @@ export class PostRepository {
 
       return {
         uri: post.uri,
+        cid: post.cid,
         author_did: post.author_did,
         text: post.text,
         location: geoUri, // Geo URI format
@@ -98,6 +100,7 @@ export class PostRepository {
    */
   async createPost(post: {
     uri: string;
+    cid: string;
     authorDid: string;
     message: Message;
     geoUri: string;
@@ -117,6 +120,7 @@ export class PostRepository {
     await this.db("post")
       .insert({
         uri: post.uri,
+        cid: post.cid,
         author_did: post.authorDid,
         text: text,
         location: this.db.raw("ST_GeomFromText(?, 4326)", [

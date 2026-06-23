@@ -59,6 +59,10 @@ describe("Ingester", () => {
           toString: () =>
             "at://did:plc:yaknny2cxnqwtb63apit6j2q/social.soapstone.feed.post/3m4qfu745jj2a",
         },
+        cid: {
+          toString: () =>
+            "bafyreidfayvfuwqa7qlnopdjiqrxzs6blmoeu4rujcjtnci5beludirz2a",
+        },
         collection: "social.soapstone.feed.post",
         time: "2025-11-03T16:10:29.091945Z",
         record: {
@@ -87,6 +91,7 @@ describe("Ingester", () => {
       expect(mockPostsRepo.createPost).toHaveBeenCalledTimes(1);
       expect(mockPostsRepo.createPost).toHaveBeenCalledWith({
         uri: "at://did:plc:yaknny2cxnqwtb63apit6j2q/social.soapstone.feed.post/3m4qfu745jj2a",
+        cid: "bafyreidfayvfuwqa7qlnopdjiqrxzs6blmoeu4rujcjtnci5beludirz2a",
         authorDid: "did:plc:yaknny2cxnqwtb63apit6j2q",
         message: [
           {
@@ -114,6 +119,10 @@ describe("Ingester", () => {
         uri: {
           toString: () =>
             "at://did:plc:test123/social.soapstone.feed.post/abc123",
+        },
+        cid: {
+          toString: () =>
+            "bafyreihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku",
         },
         collection: "social.soapstone.feed.post",
         time: "2025-11-04T10:30:00.000Z",
@@ -153,6 +162,7 @@ describe("Ingester", () => {
       expect(mockPostsRepo.createPost).toHaveBeenCalledTimes(1);
       expect(mockPostsRepo.createPost).toHaveBeenCalledWith({
         uri: "at://did:plc:test123/social.soapstone.feed.post/abc123",
+        cid: "bafyreihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku",
         authorDid: "did:plc:test123",
         message: expect.arrayContaining([
           expect.objectContaining({
@@ -324,6 +334,10 @@ describe("Ingester", () => {
           toString: () =>
             "at://did:plc:yaknny2cxnqwtb63apit6j2q/social.soapstone.feed.post/3m4qfu745jj2a",
         },
+        cid: {
+          toString: () =>
+            "bafyreidfayvfuwqa7qlnopdjiqrxzs6blmoeu4rujcjtnci5beludirz2a",
+        },
         collection: "social.soapstone.feed.post",
         time: "2025-11-04T10:30:00.000Z",
       };
@@ -431,6 +445,10 @@ describe("Ingester", () => {
           toString: () =>
             "at://did:plc:yaknny2cxnqwtb63apit6j2q/social.soapstone.feed.post/3m4qfu745jj2a",
         },
+        cid: {
+          toString: () =>
+            "bafyreidfayvfuwqa7qlnopdjiqrxzs6blmoeu4rujcjtnci5beludirz2a",
+        },
         collection: "social.soapstone.feed.post",
         time: "2025-11-03T16:10:29.091945Z",
         record: {
@@ -476,6 +494,10 @@ describe("Ingester", () => {
         uri: {
           toString: () =>
             "at://did:plc:yaknny2cxnqwtb63apit6j2q/social.soapstone.feed.post/3m4qfu745jj2a",
+        },
+        cid: {
+          toString: () =>
+            "bafyreidfayvfuwqa7qlnopdjiqrxzs6blmoeu4rujcjtnci5beludirz2a",
         },
         collection: "social.soapstone.feed.post",
         time: "2025-11-04T10:30:00.000Z",

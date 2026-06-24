@@ -1,6 +1,18 @@
 // File containing Geo URI utilities
 
 /**
+ * Error thrown when a Geo URI cannot be parsed. Distinguished from generic
+ * errors so request handlers can map malformed client input to a 400 instead
+ * of a 500.
+ */
+export class InvalidGeoURIError extends Error {
+  constructor(geoURI: string) {
+    super(`Invalid Geo URI: ${geoURI}`);
+    this.name = "InvalidGeoURIError";
+  }
+}
+
+/**
  * Parses a Geo URI and returns an object containing the latitude, longitude, and altitude.
  * @param geoURI The URI of a
  * @returns An object containing the latitude, longitude, and altitude.
@@ -10,10 +22,12 @@ export function parseGeoURI(geoURI: string): {
   longitude: number;
   altitude?: number;
 } {
+  // Per RFC 5870 the fractional part of a coordinate is optional, so integer
+  // coordinates (e.g. "geo:0,0" or "geo:37,-122") are valid.
   const match = geoURI.match(
-    /^geo:(-?\d+\.\d+),(-?\d+\.\d+)(?:;u=(-?\d+\.\d+))?/,
+    /^geo:(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)(?:;u=(-?\d+(?:\.\d+)?))?/,
   );
-  if (!match) throw new Error("Invalid Geo URI");
+  if (!match) throw new InvalidGeoURIError(geoURI);
   return {
     latitude: parseFloat(match[1]),
     longitude: parseFloat(match[2]),

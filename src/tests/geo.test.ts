@@ -51,6 +51,26 @@ describe("parseGeoURI", () => {
     });
   });
 
+  it("should parse a geo URI with integer coordinates (RFC 5870)", () => {
+    const result = parseGeoURI("geo:37,-122");
+
+    expect(result).toEqual({
+      latitude: 37,
+      longitude: -122,
+      altitude: undefined,
+    });
+  });
+
+  it("should parse a geo URI with integer zero coordinates", () => {
+    const result = parseGeoURI("geo:0,0");
+
+    expect(result).toEqual({
+      latitude: 0,
+      longitude: 0,
+      altitude: undefined,
+    });
+  });
+
   it("should parse a geo URI with zero altitude", () => {
     const result = parseGeoURI("geo:40.7128,-74.0060;u=0.0");
 

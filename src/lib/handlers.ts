@@ -1,5 +1,6 @@
 import { MethodHandler } from "@atproto/xrpc-server";
 import * as GetPosts from "#/lexicon/types/social/soapstone/feed/getPosts";
+import { InvalidGeoURIError } from "#/lib/utils/geo";
 import { AppContext } from "./server";
 
 export type Session = { did: string };
@@ -26,6 +27,14 @@ export class SoapStoneLexiconHandler {
         body: { posts: response },
       } as GetPosts.HandlerSuccess;
     } catch (err) {
+      // A malformed location is bad client input, not a server fault.
+      if (err instanceof InvalidGeoURIError) {
+        this.ctx.logger.warn({ err }, "Invalid location in getPosts request");
+        return {
+          status: 400,
+          message: err.message,
+        };
+      }
       this.ctx.logger.error({ err }, "Error fetching posts");
       return {
         status: 500,

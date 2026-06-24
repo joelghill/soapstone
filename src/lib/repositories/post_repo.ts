@@ -51,6 +51,11 @@ export class PostRepository {
         "ST_DWithin(post.location::geography, ST_GeomFromText(?, 4326)::geography, ?)",
         [`POINT(${geoData.longitude} ${geoData.latitude})`, radius],
       )
+      // Rows created before the cid column was added have a null cid. The
+      // postView lexicon requires cid, so including them would fail output
+      // validation and 500 the whole request. They can't be rated without a
+      // cid anyway, so exclude them.
+      .whereNotNull("post.cid")
       .orderBy("post.created_at", "desc");
 
     const posts = await query;

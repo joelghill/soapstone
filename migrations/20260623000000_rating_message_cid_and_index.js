@@ -8,14 +8,21 @@
  * positive/negative aggregation can run index-only rather than visiting the
  * heap to read the `positive` flag.
  *
+ * Both statements use IF [NOT] EXISTS so the migration is idempotent: the app
+ * runs `yarn migrate` on startup, so a retry after an interrupted/concurrent
+ * run (e.g. the column or index landed but the migration record did not) must
+ * succeed rather than erroring on the already-present object.
+ *
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
 exports.up = async function (knex) {
-  return knex.schema.alterTable("rating", (table) => {
-    table.string("message_cid");
-    table.index(["post_uri", "positive"], "rating_post_uri_positive_index");
-  });
+  await knex.raw(
+    'ALTER TABLE "rating" ADD COLUMN IF NOT EXISTS "message_cid" varchar(255)',
+  );
+  await knex.raw(
+    'CREATE INDEX IF NOT EXISTS "rating_post_uri_positive_index" ON "rating" ("post_uri", "positive")',
+  );
 };
 
 /**
@@ -23,8 +30,6 @@ exports.up = async function (knex) {
  * @returns { Promise<void> }
  */
 exports.down = async function (knex) {
-  return knex.schema.alterTable("rating", (table) => {
-    table.dropIndex(["post_uri", "positive"], "rating_post_uri_positive_index");
-    table.dropColumn("message_cid");
-  });
+  await knex.raw('DROP INDEX IF EXISTS "rating_post_uri_positive_index"');
+  await knex.raw('ALTER TABLE "rating" DROP COLUMN IF EXISTS "message_cid"');
 };

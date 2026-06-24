@@ -210,10 +210,6 @@ describe("Ingester", () => {
             cid: "bafyreibvjvcv745gig4mvqs4hctx4zfkono4rjejm2ta6gtyay4qewdldi",
           },
           value: true,
-          via: {
-            uri: "at://did:plc:author/social.soapstone.feed.post/post1",
-            cid: "bafyreibvjvcv745gig4mvqs4hctx4zfkono4rjejm2ta6gtyay4qewdldi",
-          },
           createdAt: "2025-11-05T12:00:00.000Z",
         },
       };
@@ -225,6 +221,8 @@ describe("Ingester", () => {
         uri: "at://did:plc:rater123/social.soapstone.feed.rating/rate1",
         authorDid: "did:plc:rater123",
         postUri: "at://did:plc:author/social.soapstone.feed.post/post1",
+        messageCid:
+          "bafyreibvjvcv745gig4mvqs4hctx4zfkono4rjejm2ta6gtyay4qewdldi",
         positive: true,
         createdAt: "2025-11-05T12:00:00.000Z",
       });
@@ -245,7 +243,7 @@ describe("Ingester", () => {
         time: "2025-11-05T12:00:00.000Z",
         record: {
           $type: "social.soapstone.feed.rating",
-          // Missing message, value, and via fields
+          // Missing message and value fields
           createdAt: "2025-11-05T12:00:00.000Z",
         },
       };

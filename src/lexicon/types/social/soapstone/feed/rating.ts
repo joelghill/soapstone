@@ -20,7 +20,6 @@ export interface Record {
   message: ComAtprotoRepoStrongRef.Main
   value: boolean
   createdAt: string
-  via: ComAtprotoRepoStrongRef.Main
   [k: string]: unknown
 }
 

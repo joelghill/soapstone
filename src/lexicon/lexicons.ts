@@ -471,7 +471,7 @@ export const schemaDict = {
         key: 'tid',
         record: {
           type: 'object',
-          required: ['message', 'value', 'createdAt', 'via'],
+          required: ['message', 'value', 'createdAt'],
           properties: {
             message: {
               type: 'ref',
@@ -483,10 +483,6 @@ export const schemaDict = {
             createdAt: {
               type: 'string',
               format: 'datetime',
-            },
-            via: {
-              type: 'ref',
-              ref: 'lex:com.atproto.repo.strongRef',
             },
           },
         },

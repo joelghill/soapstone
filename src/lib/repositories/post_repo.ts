@@ -191,6 +191,7 @@ export class PostRepository {
     uri: string;
     authorDid: string;
     postUri: string;
+    messageCid?: string;
     positive: boolean;
     createdAt: string;
   }): Promise<void> {
@@ -201,6 +202,7 @@ export class PostRepository {
         uri: rating.uri,
         author_did: rating.authorDid,
         post_uri: rating.postUri,
+        message_cid: rating.messageCid,
         positive: rating.positive,
         created_at: rating.createdAt,
         indexed_at: new Date().toISOString(),

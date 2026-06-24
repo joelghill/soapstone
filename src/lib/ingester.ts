@@ -80,6 +80,7 @@ export function createIngester(
                 uri: evt.uri.toString(),
                 authorDid: evt.did,
                 postUri: record.message.uri,
+                messageCid: record.message.cid,
                 positive: record.value,
                 createdAt: evt.time,
               });

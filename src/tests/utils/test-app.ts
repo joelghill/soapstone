@@ -1,6 +1,9 @@
 import { pino } from "pino";
+import { AuthRequiredError } from "@atproto/xrpc-server";
 import { SoapStoneServer, AppContext } from "../../lib/server";
 import { PostRepository } from "../../lib/repositories/post_repo";
+import { InteractionRepository } from "../../lib/repositories/interaction_repo";
+import { AuthVerifiers, getBearerToken } from "../../lib/auth";
 import { Firehose } from "@atproto/sync";
 
 // Mock the database imports to prevent real database connections
@@ -55,11 +58,44 @@ export function createMockPostsRepo(): jest.Mocked<PostRepository> {
   return mockRepo as jest.Mocked<PostRepository>;
 }
 
+/** Creates an InteractionRepository whose query methods are Jest mocks. */
+export function createMockInteractionsRepo(): jest.Mocked<InteractionRepository> {
+  const mockRepo = Object.create(InteractionRepository.prototype);
+
+  mockRepo.getAuthorStats = jest.fn();
+  mockRepo.getInteractions = jest.fn();
+  mockRepo.getSimilarActors = jest.fn();
+
+  return mockRepo as jest.Mocked<InteractionRepository>;
+}
+
+/**
+ * Stub auth verifiers for endpoint tests. They skip JWT verification and treat
+ * the Bearer token as the caller's DID, so a test can authenticate as a given
+ * account with `.set("Authorization", "Bearer did:test:viewer")` or omit the
+ * header to exercise the unauthenticated path.
+ */
+export function createStubAuth(): AuthVerifiers {
+  return {
+    required: async ({ req }) => {
+      const did = getBearerToken(req.headers.authorization);
+      if (!did) throw new AuthRequiredError("Authentication required");
+      return { credentials: { did } };
+    },
+    optional: async ({ req }) => {
+      return { credentials: { did: getBearerToken(req.headers.authorization) ?? null } };
+    },
+  };
+}
+
 /**
  * Test utility to create an Express app using SoapStoneServer.create with mocked dependencies
  * and real handlers for testing XRPC endpoints with supertest
  */
-export async function createTestServer(mockPostsRepo: PostRepository) {
+export async function createTestServer(
+  mockPostsRepo: PostRepository,
+  mockInteractionsRepo: InteractionRepository = createMockInteractionsRepo(),
+) {
   // Create a real logger for testing (using silent level to avoid console output)
   const logger = pino({ level: "silent" });
 
@@ -74,6 +110,8 @@ export async function createTestServer(mockPostsRepo: PostRepository) {
     ingester: mockIngester,
     logger,
     posts_repo: mockPostsRepo,
+    interactions_repo: mockInteractionsRepo,
+    auth: createStubAuth(),
   };
 
   // Create the server using the SoapStoneServer.create method

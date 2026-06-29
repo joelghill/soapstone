@@ -16,6 +16,9 @@ export const env = cleanEnv(process.env, {
   HOST: host({ devDefault: testOnly("localhost") }),
   PORT: port({ devDefault: testOnly(3000) }),
   PUBLIC_URL: str({}),
+  // The appview's own DID, used as the expected audience when verifying
+  // inter-service auth JWTs minted by callers' PDSes.
+  SERVICE_DID: str({ devDefault: "did:web:localhost" }),
   DB_URL: str({ default: undefined }),
   DB_HOST: str({ devDefault: "localhost" }),
   DB_PORT: port({ devDefault: 5432 }),

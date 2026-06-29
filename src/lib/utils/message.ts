@@ -36,15 +36,16 @@ export function createMessageText(message: Message): string {
 export function validateMessageType(message: Message): void {
   for (const part of message) {
     const baseType = part.base.$type;
-    const fillType = part.fill.$type;
-    // If the fill or base type does not start with the expected prefixes, throw an error
-    if (
-      !baseType.startsWith("social.soapstone.text.") ||
-      !fillType.startsWith("social.soapstone.text.")
-    ) {
-      throw new Error(
-        `Invalid message part types: base type ${baseType}, fill type ${fillType}`,
-      );
+    if (!baseType.startsWith("social.soapstone.text.")) {
+      throw new Error(`Invalid message part base type: ${baseType}`);
+    }
+    // fill is optional: standalone base phrases (e.g. "Praise the Sun!") have
+    // no '****' slot and carry no fill.
+    if (part.fill) {
+      const fillType = part.fill.$type;
+      if (!fillType.startsWith("social.soapstone.text.")) {
+        throw new Error(`Invalid message part fill type: ${fillType}`);
+      }
     }
   }
 }

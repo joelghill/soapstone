@@ -4,25 +4,36 @@
   "defs": {
     "postView": {
       "type": "object",
-      "required": ["uri", "cid", "author_did", "text", "location", "created_at"],
+      "description": "A hydrated view of a soapstone post, including its author, rendered text, location, and aggregate interaction counts.",
+      "required": ["uri", "cid", "author", "text", "location", "createdAt"],
       "properties": {
         "uri": { "type": "string", "format": "at-uri" },
         "cid": { "type": "string", "format": "cid" },
-        "author_did": {
-          "type": "string",
-          "format": "at-identifier",
-          "description": "The Handle or DID of the author of the post."
+        "author": {
+          "type": "ref",
+          "ref": "social.soapstone.actor.defs#profileViewMinimal"
         },
         "text": {
-          "type": "string"
+          "type": "string",
+          "description": "The post's message rendered to a display string."
         },
         "location": {
-          "type": "string",
-          "format": "uri"
+          "type": "ref",
+          "ref": "social.soapstone.location.defs#location"
         },
-        "positive_ratings": { "type": "integer" },
-        "negative_ratings": { "type": "integer" },
-        "created_at": { "type": "string", "format": "datetime" },
+        "likes": {
+          "type": "integer",
+          "description": "Number of interactions rated 'like'."
+        },
+        "dislikes": {
+          "type": "integer",
+          "description": "Number of interactions rated 'dislike'."
+        },
+        "discoveries": {
+          "type": "integer",
+          "description": "Total number of interactions (accounts that have seen the post), including those that also rated it."
+        },
+        "createdAt": { "type": "string", "format": "datetime" },
         "viewer": { "type": "ref", "ref": "#viewerState" }
       }
     },
@@ -30,10 +41,51 @@
       "type": "object",
       "description": "Metadata about the requesting account's relationship with the subject content.",
       "properties": {
-        "rating_uri": { "type": "string", "format": "at-uri" },
-        "rating_value": {
-          "type": "boolean",
-          "description": "The rating value. True for positive rating, false for negative rating."
+        "interaction": {
+          "type": "string",
+          "format": "at-uri",
+          "description": "AT-URI of the requesting account's interaction record for this post, if one exists. Presence indicates the account has seen the post."
+        },
+        "rating": {
+          "type": "string",
+          "description": "The requesting account's rating of the post, if any. Absent means seen but not rated.",
+          "knownValues": ["like", "dislike"]
+        }
+      }
+    },
+    "interactionView": {
+      "type": "object",
+      "description": "A view of another account's interaction with a post, including how they rated it (if at all).",
+      "required": ["actor", "createdAt"],
+      "properties": {
+        "actor": {
+          "type": "ref",
+          "ref": "social.soapstone.actor.defs#profileViewMinimal"
+        },
+        "rating": {
+          "type": "string",
+          "description": "The account's rating of the post, if any. Absent means seen but not rated.",
+          "knownValues": ["like", "dislike"]
+        },
+        "createdAt": { "type": "string", "format": "datetime" }
+      }
+    },
+    "interactionStats": {
+      "type": "object",
+      "description": "Aggregate interaction counts across one or more posts.",
+      "required": ["likes", "dislikes", "discoveries"],
+      "properties": {
+        "likes": {
+          "type": "integer",
+          "description": "Number of interactions rated 'like'."
+        },
+        "dislikes": {
+          "type": "integer",
+          "description": "Number of interactions rated 'dislike'."
+        },
+        "discoveries": {
+          "type": "integer",
+          "description": "Total number of interactions (accounts that have seen the post), including those that also rated it."
         }
       }
     }

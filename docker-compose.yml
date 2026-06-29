@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   # PostgreSQL database with PostGIS
   postgres:
@@ -13,7 +11,6 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./migrations:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -33,6 +30,8 @@ services:
       HOST: 0.0.0.0
       PORT: 3000
       PUBLIC_URL: http://localhost:3000
+      # The appview's own DID; the expected audience of inter-service auth JWTs.
+      SERVICE_DID: did:web:localhost
       DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: soapstone

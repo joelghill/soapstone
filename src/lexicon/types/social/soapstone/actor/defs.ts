@@ -14,6 +14,7 @@ const is$typed = _is$typed,
   validate = _validate
 const id = 'social.soapstone.actor.defs'
 
+/** A minimal view of an account profile: identity plus optional display name and avatar. */
 export interface ProfileViewMinimal {
   $type?: 'social.soapstone.actor.defs#profileViewMinimal'
   did: string

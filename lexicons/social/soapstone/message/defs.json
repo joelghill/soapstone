@@ -4,8 +4,8 @@
   "defs": {
     "messagePart": {
       "type": "object",
-      "description": "A message part consisting of a base phrase and a fill phrase.",
-      "required": ["base", "fill"],
+      "description": "A message part consisting of a base phrase and an optional fill phrase. Standalone base phrases (e.g. 'Praise the Sun!') have no '****' slot and omit the fill.",
+      "required": ["base"],
       "properties": {
         "base": {
           "type": "union",

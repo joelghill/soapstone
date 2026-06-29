@@ -1,0 +1,29 @@
+{
+  "lexicon": 1,
+  "id": "social.soapstone.graph.defs",
+  "defs": {
+    "sharedInteractionsView": {
+      "type": "object",
+      "description": "An account that shares interactions with the requesting account, with counts of posts they have rated or discovered in common.",
+      "required": ["actor", "likesInCommon", "dislikesInCommon", "discoveriesInCommon"],
+      "properties": {
+        "actor": {
+          "type": "ref",
+          "ref": "social.soapstone.actor.defs#profileViewMinimal"
+        },
+        "likesInCommon": {
+          "type": "integer",
+          "description": "Number of posts both accounts rated 'like'."
+        },
+        "dislikesInCommon": {
+          "type": "integer",
+          "description": "Number of posts both accounts rated 'dislike'."
+        },
+        "discoveriesInCommon": {
+          "type": "integer",
+          "description": "Number of posts both accounts have interacted with (seen), regardless of rating. Superset that includes shared likes and dislikes."
+        }
+      }
+    }
+  }
+}

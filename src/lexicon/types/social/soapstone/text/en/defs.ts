@@ -14,10 +14,11 @@ const is$typed = _is$typed,
   validate = _validate
 const id = 'social.soapstone.text.en.defs'
 
+/** A base phrase template. Values are an intentionally closed, authored vocabulary (the Dark Souls soapstone message set), so this is an enum rather than knownValues. */
 export interface BasePhrase {
   $type?: 'social.soapstone.text.en.defs#basePhrase'
   /** Selected base phrase for the message where the '****' is replaced with a fillPhrase value */
-  selection?:
+  selection:
     | '**** ahead'
     | 'Be wary of ****'
     | 'Try ****'
@@ -43,10 +44,10 @@ export function validateBasePhrase<V>(v: V) {
   return validate<BasePhrase & V>(v, id, hashBasePhrase)
 }
 
-/** Character types that can be used in conjunction with base phrases to form a complete message */
+/** Character types that can be used in conjunction with base phrases to form a complete message. Intentionally closed, authored vocabulary. */
 export interface Character {
   $type?: 'social.soapstone.text.en.defs#character'
-  selection?:
+  selection:
     | 'Enemy'
     | 'Tough enemy'
     | 'Hollow'
@@ -82,10 +83,10 @@ export function validateCharacter<V>(v: V) {
   return validate<Character & V>(v, id, hashCharacter)
 }
 
-/** Objects that can be used in conjunction with base phrases to form a complete message */
+/** Objects that can be used in conjunction with base phrases to form a complete message. Intentionally closed, authored vocabulary. */
 export interface Object {
   $type?: 'social.soapstone.text.en.defs#object'
-  selection?:
+  selection:
     | 'Bonfire'
     | 'Fog wall'
     | 'Humanity'
@@ -132,10 +133,10 @@ export function validateObject<V>(v: V) {
   return validate<Object & V>(v, id, hashObject)
 }
 
-/** Techniques that can be used in conjunction with base phrases to form a complete message */
+/** Techniques that can be used in conjunction with base phrases to form a complete message. Intentionally closed, authored vocabulary. */
 export interface Technique {
   $type?: 'social.soapstone.text.en.defs#technique'
-  selection?:
+  selection:
     | 'Close-ranged battle'
     | 'Ranged battle'
     | 'Eliminating one at a time'
@@ -170,10 +171,10 @@ export function validateTechnique<V>(v: V) {
   return validate<Technique & V>(v, id, hashTechnique)
 }
 
-/** Action types that can be used in conjunction with base phrases to form a complete message */
+/** Action types that can be used in conjunction with base phrases to form a complete message. Intentionally closed, authored vocabulary. */
 export interface Action {
   $type?: 'social.soapstone.text.en.defs#action'
-  selection?:
+  selection:
     | 'Rolling'
     | 'Backstepping'
     | 'Jumping'
@@ -196,16 +197,15 @@ export function validateAction<V>(v: V) {
   return validate<Action & V>(v, id, hashAction)
 }
 
-/** Geography types that can be used in conjunction with base phrases to form a complete message */
+/** Geography types that can be used in conjunction with base phrases to form a complete message. Intentionally closed, authored vocabulary. */
 export interface Geography {
   $type?: 'social.soapstone.text.en.defs#geography'
-  selection?:
+  selection:
     | 'Path'
     | 'Hidden path'
     | 'Shortcut'
     | 'Detour'
     | 'Illusionary wall'
-    | 'Shortcut'
     | 'Dead end'
     | 'Swamp'
     | 'Lava'
@@ -235,10 +235,10 @@ export function validateGeography<V>(v: V) {
   return validate<Geography & V>(v, id, hashGeography)
 }
 
-/** Orientation types that can be used in conjunction with base phrases to form a complete message */
+/** Orientation types that can be used in conjunction with base phrases to form a complete message. Intentionally closed, authored vocabulary. */
 export interface Orientation {
   $type?: 'social.soapstone.text.en.defs#orientation'
-  selection?:
+  selection:
     | 'Front'
     | 'Back'
     | 'Left'
@@ -247,7 +247,6 @@ export interface Orientation {
     | 'Down'
     | 'Feet'
     | 'Head'
-    | 'Back'
 }
 
 const hashOrientation = 'orientation'
@@ -260,10 +259,10 @@ export function validateOrientation<V>(v: V) {
   return validate<Orientation & V>(v, id, hashOrientation)
 }
 
-/** Body parts that can be used in conjunction with base phrases to form a complete message */
+/** Body parts that can be used in conjunction with base phrases to form a complete message. Intentionally closed, authored vocabulary. */
 export interface BodyPart {
   $type?: 'social.soapstone.text.en.defs#bodyPart'
-  selection?:
+  selection:
     | 'Head'
     | 'Neck'
     | 'Stomach'
@@ -287,10 +286,10 @@ export function validateBodyPart<V>(v: V) {
   return validate<BodyPart & V>(v, id, hashBodyPart)
 }
 
-/** Attributes that can be used in conjunction with base phrases to form a complete message */
+/** Attributes that can be used in conjunction with base phrases to form a complete message. Intentionally closed, authored vocabulary. */
 export interface Attribute {
   $type?: 'social.soapstone.text.en.defs#attribute'
-  selection?:
+  selection:
     | 'Strike'
     | 'Thrust'
     | 'Slash'

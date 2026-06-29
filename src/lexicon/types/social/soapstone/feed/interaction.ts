@@ -13,12 +13,13 @@ import type * as ComAtprotoRepoStrongRef from '../../../com/atproto/repo/strongR
 
 const is$typed = _is$typed,
   validate = _validate
-const id = 'social.soapstone.feed.rating'
+const id = 'social.soapstone.feed.interaction'
 
 export interface Record {
-  $type: 'social.soapstone.feed.rating'
-  message: ComAtprotoRepoStrongRef.Main
-  value: boolean
+  $type: 'social.soapstone.feed.interaction'
+  subject: ComAtprotoRepoStrongRef.Main
+  /** Optional rating of the subject. Absent means the account has seen the post but not rated it. */
+  rating?: 'like' | 'dislike' | (string & {})
   createdAt: string
   [k: string]: unknown
 }

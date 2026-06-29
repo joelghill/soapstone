@@ -13,6 +13,8 @@ import { createIdResolver } from "#/lib/id-resolver";
 import { createServer, Server as LexServer } from "#/lexicon";
 import { SoapStoneLexiconHandler } from "#/lib/handlers";
 import { PostRepository } from "#/lib/repositories/post_repo";
+import { InteractionRepository } from "#/lib/repositories/interaction_repo";
+import { createAuthVerifiers, AuthVerifiers } from "#/lib/auth";
 import path from "path";
 import { engine } from "express-handlebars";
 
@@ -21,6 +23,8 @@ export type AppContext = {
   ingester: Firehose;
   logger: pino.BaseLogger;
   posts_repo: PostRepository;
+  interactions_repo: InteractionRepository;
+  auth: AuthVerifiers;
 };
 
 export class SoapStoneServer {
@@ -37,6 +41,18 @@ export class SoapStoneServer {
     this.lexServer = createServer();
     this.lexServer.social.soapstone.feed.getPosts({
       handler: this.handler.handleGetPosts,
+    });
+    this.lexServer.social.soapstone.feed.getInteractions({
+      auth: this.ctx.auth.required,
+      handler: this.handler.handleGetInteractions,
+    });
+    this.lexServer.social.soapstone.feed.getAuthorStats({
+      auth: this.ctx.auth.optional,
+      handler: this.handler.handleGetAuthorStats,
+    });
+    this.lexServer.social.soapstone.graph.getSimilarActors({
+      auth: this.ctx.auth.required,
+      handler: this.handler.handleGetSimilarActors,
     });
 
     // Create our server
@@ -102,8 +118,10 @@ export class SoapStoneServer {
       await migrateToLatest(db);
 
       // Create our repositories
-      const posts_repo = new PostRepository(db, st);
       const baseIdResolver = createIdResolver();
+      const posts_repo = new PostRepository(db, st, baseIdResolver);
+      const interactions_repo = new InteractionRepository(db, baseIdResolver);
+      const auth = createAuthVerifiers(baseIdResolver, env.SERVICE_DID);
       const ingester = createIngester(
         posts_repo,
         baseIdResolver,
@@ -113,6 +131,8 @@ export class SoapStoneServer {
         ingester,
         logger,
         posts_repo,
+        interactions_repo,
+        auth,
       };
     }
     return new SoapStoneServer(ctx);

@@ -5,6 +5,10 @@ const postgis = require("knex-postgis");
  */
 exports.up = async function (knex) {
   const st = postgis(knex);
+  // PostGIS provides the geometry type used by post.location. Ensure the
+  // extension exists before any table references it, so the schema is
+  // self-contained and does not depend on the database image's init scripts.
+  await knex.raw("CREATE EXTENSION IF NOT EXISTS postgis");
   return Promise.all([
     // Post table
     knex.schema.createTable("post", (table) => {

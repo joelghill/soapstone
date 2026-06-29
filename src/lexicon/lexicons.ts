@@ -295,6 +295,8 @@ export const schemaDict = {
     defs: {
       profileViewMinimal: {
         type: 'object',
+        description:
+          'A minimal view of an account profile: identity plus optional display name and avatar.',
         required: ['did', 'handle'],
         properties: {
           did: {
@@ -324,14 +326,9 @@ export const schemaDict = {
     defs: {
       postView: {
         type: 'object',
-        required: [
-          'uri',
-          'cid',
-          'author_did',
-          'text',
-          'location',
-          'created_at',
-        ],
+        description:
+          'A hydrated view of a soapstone post, including its author, rendered text, location, and aggregate interaction counts.',
+        required: ['uri', 'cid', 'author', 'text', 'location', 'createdAt'],
         properties: {
           uri: {
             type: 'string',
@@ -341,25 +338,32 @@ export const schemaDict = {
             type: 'string',
             format: 'cid',
           },
-          author_did: {
-            type: 'string',
-            format: 'at-identifier',
-            description: 'The Handle or DID of the author of the post.',
+          author: {
+            type: 'ref',
+            ref: 'lex:social.soapstone.actor.defs#profileViewMinimal',
           },
           text: {
             type: 'string',
+            description: "The post's message rendered to a display string.",
           },
           location: {
-            type: 'string',
-            format: 'uri',
+            type: 'ref',
+            ref: 'lex:social.soapstone.location.defs#location',
           },
-          positive_ratings: {
+          likes: {
             type: 'integer',
+            description: "Number of interactions rated 'like'.",
           },
-          negative_ratings: {
+          dislikes: {
             type: 'integer',
+            description: "Number of interactions rated 'dislike'.",
           },
-          created_at: {
+          discoveries: {
+            type: 'integer',
+            description:
+              'Total number of interactions (accounts that have seen the post), including those that also rated it.',
+          },
+          createdAt: {
             type: 'string',
             format: 'datetime',
           },
@@ -374,14 +378,151 @@ export const schemaDict = {
         description:
           "Metadata about the requesting account's relationship with the subject content.",
         properties: {
-          rating_uri: {
+          interaction: {
             type: 'string',
             format: 'at-uri',
-          },
-          rating_value: {
-            type: 'boolean',
             description:
-              'The rating value. True for positive rating, false for negative rating.',
+              "AT-URI of the requesting account's interaction record for this post, if one exists. Presence indicates the account has seen the post.",
+          },
+          rating: {
+            type: 'string',
+            description:
+              "The requesting account's rating of the post, if any. Absent means seen but not rated.",
+            knownValues: ['like', 'dislike'],
+          },
+        },
+      },
+      interactionView: {
+        type: 'object',
+        description:
+          "A view of another account's interaction with a post, including how they rated it (if at all).",
+        required: ['actor', 'createdAt'],
+        properties: {
+          actor: {
+            type: 'ref',
+            ref: 'lex:social.soapstone.actor.defs#profileViewMinimal',
+          },
+          rating: {
+            type: 'string',
+            description:
+              "The account's rating of the post, if any. Absent means seen but not rated.",
+            knownValues: ['like', 'dislike'],
+          },
+          createdAt: {
+            type: 'string',
+            format: 'datetime',
+          },
+        },
+      },
+      interactionStats: {
+        type: 'object',
+        description: 'Aggregate interaction counts across one or more posts.',
+        required: ['likes', 'dislikes', 'discoveries'],
+        properties: {
+          likes: {
+            type: 'integer',
+            description: "Number of interactions rated 'like'.",
+          },
+          dislikes: {
+            type: 'integer',
+            description: "Number of interactions rated 'dislike'.",
+          },
+          discoveries: {
+            type: 'integer',
+            description:
+              'Total number of interactions (accounts that have seen the post), including those that also rated it.',
+          },
+        },
+      },
+    },
+  },
+  SocialSoapstoneFeedGetAuthorStats: {
+    lexicon: 1,
+    id: 'social.soapstone.feed.getAuthorStats',
+    defs: {
+      main: {
+        type: 'query',
+        description:
+          "Gets aggregate interaction totals (likes, dislikes, and discoveries) across the posts authored by an account. Defaults to the authenticated account's own posts.",
+        parameters: {
+          type: 'params',
+          properties: {
+            actor: {
+              type: 'string',
+              format: 'at-identifier',
+              description:
+                'The account whose authored-post totals to fetch. Defaults to the authenticated account.',
+            },
+          },
+        },
+        output: {
+          encoding: 'application/json',
+          schema: {
+            type: 'object',
+            required: ['stats'],
+            properties: {
+              stats: {
+                type: 'ref',
+                ref: 'lex:social.soapstone.feed.defs#interactionStats',
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+  SocialSoapstoneFeedGetInteractions: {
+    lexicon: 1,
+    id: 'social.soapstone.feed.getInteractions',
+    defs: {
+      main: {
+        type: 'query',
+        description:
+          "Lists other accounts' interactions with a post. Requires authentication, and only returns results if the requesting account has itself interacted with the post.",
+        parameters: {
+          type: 'params',
+          required: ['uri'],
+          properties: {
+            uri: {
+              type: 'string',
+              format: 'at-uri',
+              description: 'AT-URI of the post to list interactions for.',
+            },
+            cid: {
+              type: 'string',
+              format: 'cid',
+              description: 'Optional CID pinning the specific post version.',
+            },
+            limit: {
+              type: 'integer',
+              description: 'Maximum number of interactions to return.',
+              minimum: 1,
+              maximum: 100,
+              default: 50,
+            },
+            cursor: {
+              type: 'string',
+              description: 'Pagination cursor returned by a previous call.',
+            },
+          },
+        },
+        output: {
+          encoding: 'application/json',
+          schema: {
+            type: 'object',
+            required: ['interactions'],
+            properties: {
+              cursor: {
+                type: 'string',
+              },
+              interactions: {
+                type: 'array',
+                items: {
+                  type: 'ref',
+                  ref: 'lex:social.soapstone.feed.defs#interactionView',
+                },
+              },
+            },
           },
         },
       },
@@ -401,7 +542,7 @@ export const schemaDict = {
             location: {
               type: 'string',
               description:
-                "The requeter's current location as described by a geo URI, a scheme defined by the Internet Engineering Task Force's RFC 5870 (published 8 June 2010).",
+                "The requester's current location as described by a geo URI, a scheme defined by the Internet Engineering Task Force's RFC 5870 (published 8 June 2010).",
               format: 'uri',
             },
             radius: {
@@ -411,6 +552,17 @@ export const schemaDict = {
               minimum: 1,
               maximum: 1000,
             },
+            limit: {
+              type: 'integer',
+              description: 'Maximum number of posts to return.',
+              minimum: 1,
+              maximum: 100,
+              default: 50,
+            },
+            cursor: {
+              type: 'string',
+              description: 'Pagination cursor returned by a previous call.',
+            },
           },
         },
         output: {
@@ -419,6 +571,9 @@ export const schemaDict = {
             type: 'object',
             required: ['posts'],
             properties: {
+              cursor: {
+                type: 'string',
+              },
               posts: {
                 type: 'array',
                 items: {
@@ -432,12 +587,48 @@ export const schemaDict = {
       },
     },
   },
+  SocialSoapstoneFeedInteraction: {
+    lexicon: 1,
+    id: 'social.soapstone.feed.interaction',
+    defs: {
+      main: {
+        type: 'record',
+        description:
+          "Record marking that an account has interacted with a post. The record's existence indicates the account has seen (discovered) the post; an optional rating expresses approval or disapproval. To enforce one interaction per account per post, the record key MUST be the record key (rkey) of the subject post, so that re-rating overwrites the existing record rather than creating a duplicate.",
+        key: 'any',
+        record: {
+          type: 'object',
+          required: ['subject', 'createdAt'],
+          properties: {
+            subject: {
+              type: 'ref',
+              ref: 'lex:com.atproto.repo.strongRef',
+              description:
+                'Strong reference to the post that was interacted with.',
+            },
+            rating: {
+              type: 'string',
+              description:
+                'Optional rating of the subject. Absent means the account has seen the post but not rated it.',
+              knownValues: ['like', 'dislike'],
+            },
+            createdAt: {
+              type: 'string',
+              format: 'datetime',
+            },
+          },
+        },
+      },
+    },
+  },
   SocialSoapstoneFeedPost: {
     lexicon: 1,
     id: 'social.soapstone.feed.post',
     defs: {
       main: {
         type: 'record',
+        description:
+          'A soapstone post: a templated message left at a geographic location, in the style of Dark Souls orange soapstone messages.',
         key: 'tid',
         record: {
           type: 'object',
@@ -460,29 +651,82 @@ export const schemaDict = {
       },
     },
   },
-  SocialSoapstoneFeedRating: {
+  SocialSoapstoneGraphDefs: {
     lexicon: 1,
-    id: 'social.soapstone.feed.rating',
+    id: 'social.soapstone.graph.defs',
+    defs: {
+      sharedInteractionsView: {
+        type: 'object',
+        description:
+          'An account that shares interactions with the requesting account, with counts of posts they have rated or discovered in common.',
+        required: [
+          'actor',
+          'likesInCommon',
+          'dislikesInCommon',
+          'discoveriesInCommon',
+        ],
+        properties: {
+          actor: {
+            type: 'ref',
+            ref: 'lex:social.soapstone.actor.defs#profileViewMinimal',
+          },
+          likesInCommon: {
+            type: 'integer',
+            description: "Number of posts both accounts rated 'like'.",
+          },
+          dislikesInCommon: {
+            type: 'integer',
+            description: "Number of posts both accounts rated 'dislike'.",
+          },
+          discoveriesInCommon: {
+            type: 'integer',
+            description:
+              'Number of posts both accounts have interacted with (seen), regardless of rating. Superset that includes shared likes and dislikes.',
+          },
+        },
+      },
+    },
+  },
+  SocialSoapstoneGraphGetSimilarActors: {
+    lexicon: 1,
+    id: 'social.soapstone.graph.getSimilarActors',
     defs: {
       main: {
-        type: 'record',
+        type: 'query',
         description:
-          'Record declaring a positive or negative rating of a piece of subject content.',
-        key: 'tid',
-        record: {
-          type: 'object',
-          required: ['message', 'value', 'createdAt'],
+          "Lists accounts whose interactions overlap with the requesting account's — accounts that have interacted with the same posts. For each account, reports how many posts they have liked, disliked, and discovered in common with the requesting account. Requires authentication. Results are ranked by posts discovered in common.",
+        parameters: {
+          type: 'params',
           properties: {
-            message: {
-              type: 'ref',
-              ref: 'lex:com.atproto.repo.strongRef',
+            limit: {
+              type: 'integer',
+              description: 'Maximum number of accounts to return.',
+              minimum: 1,
+              maximum: 100,
+              default: 50,
             },
-            value: {
-              type: 'boolean',
-            },
-            createdAt: {
+            cursor: {
               type: 'string',
-              format: 'datetime',
+              description: 'Pagination cursor returned by a previous call.',
+            },
+          },
+        },
+        output: {
+          encoding: 'application/json',
+          schema: {
+            type: 'object',
+            required: ['actors'],
+            properties: {
+              cursor: {
+                type: 'string',
+              },
+              actors: {
+                type: 'array',
+                items: {
+                  type: 'ref',
+                  ref: 'lex:social.soapstone.graph.defs#sharedInteractionsView',
+                },
+              },
             },
           },
         },
@@ -495,7 +739,8 @@ export const schemaDict = {
     defs: {
       location: {
         type: 'object',
-        description: 'A location in a 3D reference system.',
+        description:
+          'A geographic location expressed as an RFC 5870 geo URI (latitude and longitude, with optional altitude).',
         required: ['uri'],
         properties: {
           uri: {
@@ -515,8 +760,8 @@ export const schemaDict = {
       messagePart: {
         type: 'object',
         description:
-          'A message part consisting of a base phrase and a fill phrase.',
-        required: ['base', 'fill'],
+          "A message part consisting of a base phrase and an optional fill phrase. Standalone base phrases (e.g. 'Praise the Sun!') have no '****' slot and omit the fill.",
+        required: ['base'],
         properties: {
           base: {
             type: 'union',
@@ -554,6 +799,9 @@ export const schemaDict = {
     defs: {
       basePhrase: {
         type: 'object',
+        description:
+          'A base phrase template. Values are an intentionally closed, authored vocabulary (the Dark Souls soapstone message set), so this is an enum rather than knownValues.',
+        required: ['selection'],
         properties: {
           selection: {
             type: 'string',
@@ -580,7 +828,8 @@ export const schemaDict = {
       character: {
         type: 'object',
         description:
-          'Character types that can be used in conjunction with base phrases to form a complete message',
+          'Character types that can be used in conjunction with base phrases to form a complete message. Intentionally closed, authored vocabulary.',
+        required: ['selection'],
         properties: {
           selection: {
             type: 'string',
@@ -615,7 +864,8 @@ export const schemaDict = {
       object: {
         type: 'object',
         description:
-          'Objects that can be used in conjunction with base phrases to form a complete message',
+          'Objects that can be used in conjunction with base phrases to form a complete message. Intentionally closed, authored vocabulary.',
+        required: ['selection'],
         properties: {
           selection: {
             type: 'string',
@@ -661,7 +911,8 @@ export const schemaDict = {
       technique: {
         type: 'object',
         description:
-          'Techniques that can be used in conjunction with base phrases to form a complete message',
+          'Techniques that can be used in conjunction with base phrases to form a complete message. Intentionally closed, authored vocabulary.',
+        required: ['selection'],
         properties: {
           selection: {
             type: 'string',
@@ -695,7 +946,8 @@ export const schemaDict = {
       action: {
         type: 'object',
         description:
-          'Action types that can be used in conjunction with base phrases to form a complete message',
+          'Action types that can be used in conjunction with base phrases to form a complete message. Intentionally closed, authored vocabulary.',
+        required: ['selection'],
         properties: {
           selection: {
             type: 'string',
@@ -717,7 +969,8 @@ export const schemaDict = {
       geography: {
         type: 'object',
         description:
-          'Geography types that can be used in conjunction with base phrases to form a complete message',
+          'Geography types that can be used in conjunction with base phrases to form a complete message. Intentionally closed, authored vocabulary.',
+        required: ['selection'],
         properties: {
           selection: {
             type: 'string',
@@ -727,7 +980,6 @@ export const schemaDict = {
               'Shortcut',
               'Detour',
               'Illusionary wall',
-              'Shortcut',
               'Dead end',
               'Swamp',
               'Lava',
@@ -752,7 +1004,8 @@ export const schemaDict = {
       orientation: {
         type: 'object',
         description:
-          'Orientation types that can be used in conjunction with base phrases to form a complete message',
+          'Orientation types that can be used in conjunction with base phrases to form a complete message. Intentionally closed, authored vocabulary.',
+        required: ['selection'],
         properties: {
           selection: {
             type: 'string',
@@ -765,7 +1018,6 @@ export const schemaDict = {
               'Down',
               'Feet',
               'Head',
-              'Back',
             ],
           },
         },
@@ -773,7 +1025,8 @@ export const schemaDict = {
       bodyPart: {
         type: 'object',
         description:
-          'Body parts that can be used in conjunction with base phrases to form a complete message',
+          'Body parts that can be used in conjunction with base phrases to form a complete message. Intentionally closed, authored vocabulary.',
+        required: ['selection'],
         properties: {
           selection: {
             type: 'string',
@@ -796,7 +1049,8 @@ export const schemaDict = {
       attribute: {
         type: 'object',
         description:
-          'Attributes that can be used in conjunction with base phrases to form a complete message',
+          'Attributes that can be used in conjunction with base phrases to form a complete message. Intentionally closed, authored vocabulary.',
+        required: ['selection'],
         properties: {
           selection: {
             type: 'string',
@@ -860,9 +1114,14 @@ export const ids = {
   ComAtprotoRepoStrongRef: 'com.atproto.repo.strongRef',
   SocialSoapstoneActorDefs: 'social.soapstone.actor.defs',
   SocialSoapstoneFeedDefs: 'social.soapstone.feed.defs',
+  SocialSoapstoneFeedGetAuthorStats: 'social.soapstone.feed.getAuthorStats',
+  SocialSoapstoneFeedGetInteractions: 'social.soapstone.feed.getInteractions',
   SocialSoapstoneFeedGetPosts: 'social.soapstone.feed.getPosts',
+  SocialSoapstoneFeedInteraction: 'social.soapstone.feed.interaction',
   SocialSoapstoneFeedPost: 'social.soapstone.feed.post',
-  SocialSoapstoneFeedRating: 'social.soapstone.feed.rating',
+  SocialSoapstoneGraphDefs: 'social.soapstone.graph.defs',
+  SocialSoapstoneGraphGetSimilarActors:
+    'social.soapstone.graph.getSimilarActors',
   SocialSoapstoneLocationDefs: 'social.soapstone.location.defs',
   SocialSoapstoneMessageDefs: 'social.soapstone.message.defs',
   SocialSoapstoneTextEnDefs: 'social.soapstone.text.en.defs',

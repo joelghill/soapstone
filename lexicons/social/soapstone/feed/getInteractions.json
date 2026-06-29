@@ -1,28 +1,27 @@
 {
   "lexicon": 1,
-  "id": "social.soapstone.feed.getPosts",
+  "id": "social.soapstone.feed.getInteractions",
   "defs": {
     "main": {
       "type": "query",
-      "description": "Gets soapstone posts in a location",
+      "description": "Lists other accounts' interactions with a post. Requires authentication, and only returns results if the requesting account has itself interacted with the post.",
       "parameters": {
         "type": "params",
-        "required": ["location"],
+        "required": ["uri"],
         "properties": {
-          "location": {
+          "uri": {
             "type": "string",
-            "description": "The requester's current location as described by a geo URI, a scheme defined by the Internet Engineering Task Force's RFC 5870 (published 8 June 2010).",
-            "format": "uri"
+            "format": "at-uri",
+            "description": "AT-URI of the post to list interactions for."
           },
-          "radius": {
-            "type": "integer",
-            "description": "The radius in meters around the location to search for posts",
-            "minimum": 1,
-            "maximum": 1000
+          "cid": {
+            "type": "string",
+            "format": "cid",
+            "description": "Optional CID pinning the specific post version."
           },
           "limit": {
             "type": "integer",
-            "description": "Maximum number of posts to return.",
+            "description": "Maximum number of interactions to return.",
             "minimum": 1,
             "maximum": 100,
             "default": 50
@@ -37,14 +36,14 @@
         "encoding": "application/json",
         "schema": {
           "type": "object",
-          "required": ["posts"],
+          "required": ["interactions"],
           "properties": {
             "cursor": { "type": "string" },
-            "posts": {
+            "interactions": {
               "type": "array",
               "items": {
                 "type": "ref",
-                "ref": "social.soapstone.feed.defs#postView"
+                "ref": "social.soapstone.feed.defs#interactionView"
               }
             }
           }

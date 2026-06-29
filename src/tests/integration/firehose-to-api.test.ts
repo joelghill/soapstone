@@ -58,12 +58,13 @@ describe("Firehose to API Integration Test", () => {
   const expectedPost: PostView = {
     uri: "at://did:plc:yaknny2cxnqwtb63apit6j2q/social.soapstone.feed.post/3m4qfu745jj2a",
     cid: "bafyreidfayvfuwqa7qlnopdjiqrxzs6blmoeu4rujcjtnci5beludirz2a",
-    author_did: "did:plc:yaknny2cxnqwtb63apit6j2q",
+    author: { did: "did:plc:yaknny2cxnqwtb63apit6j2q", handle: "author.test" },
     text: "Be wary of Rear",
-    location: "geo:52.0992366,-106.6303074,486.5;u=17.988000869750977",
-    positive_ratings: 0,
-    negative_ratings: 0,
-    created_at: "2025-11-03T16:10:29.091945Z",
+    location: { uri: "geo:52.0992366,-106.6303074,486.5;u=17.988000869750977" },
+    likes: 0,
+    dislikes: 0,
+    discoveries: 0,
+    createdAt: "2025-11-03T16:10:29.091945Z",
   };
 
   beforeEach(async () => {
@@ -119,7 +120,7 @@ describe("Firehose to API Integration Test", () => {
       });
 
       // Step 3: Mock the repository to return the post when queried
-      mockPostsRepo.getPostsByLocation.mockResolvedValue([expectedPost]);
+      mockPostsRepo.getPostsByLocation.mockResolvedValue({ posts: [expectedPost] });
 
       // Step 4: Make an API request to retrieve posts near that location
       const response = await request(server.expressApp)
@@ -139,6 +140,8 @@ describe("Firehose to API Integration Test", () => {
       expect(mockPostsRepo.getPostsByLocation).toHaveBeenCalledWith(
         "geo:52.0992366,-106.6303074",
         1000,
+        50,
+        undefined,
       );
     });
 
@@ -186,12 +189,13 @@ describe("Firehose to API Integration Test", () => {
       const secondPost: PostView = {
         uri: "at://did:plc:another_user/social.soapstone.feed.post/abc123",
         cid: "bafyreihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku",
-        author_did: "did:plc:another_user",
+        author: { did: "did:plc:another_user", handle: "another.test" },
         text: "Try Attacking",
-        location: "geo:52.0995,-106.6305,490",
-        positive_ratings: 0,
-        negative_ratings: 0,
-        created_at: "2025-11-03T17:00:00.000Z",
+        location: { uri: "geo:52.0995,-106.6305,490" },
+        likes: 0,
+        dislikes: 0,
+        discoveries: 0,
+        createdAt: "2025-11-03T17:00:00.000Z",
       };
 
       // Process second event
@@ -201,10 +205,9 @@ describe("Firehose to API Integration Test", () => {
       expect(mockPostsRepo.createPost).toHaveBeenCalledTimes(2);
 
       // Mock repository to return both posts
-      mockPostsRepo.getPostsByLocation.mockResolvedValue([
-        expectedPost,
-        secondPost,
-      ]);
+      mockPostsRepo.getPostsByLocation.mockResolvedValue({
+        posts: [expectedPost, secondPost],
+      });
 
       // Query for posts in the area
       const response = await request(server.expressApp)
@@ -251,7 +254,7 @@ describe("Firehose to API Integration Test", () => {
       );
 
       // Mock repository to return empty array (post was deleted)
-      mockPostsRepo.getPostsByLocation.mockResolvedValue([]);
+      mockPostsRepo.getPostsByLocation.mockResolvedValue({ posts: [] });
 
       // Query for posts
       const response = await request(server.expressApp)
@@ -305,7 +308,7 @@ describe("Firehose to API Integration Test", () => {
       expect(mockPostsRepo.createPost).not.toHaveBeenCalled();
 
       // Mock repository to return empty array
-      mockPostsRepo.getPostsByLocation.mockResolvedValue([]);
+      mockPostsRepo.getPostsByLocation.mockResolvedValue({ posts: [] });
 
       // Query for posts
       const response = await request(server.expressApp)
@@ -337,7 +340,7 @@ describe("Firehose to API Integration Test", () => {
       expect(mockPostsRepo.createPost).toHaveBeenCalledTimes(1);
 
       // Even though creation failed, API should still respond normally
-      mockPostsRepo.getPostsByLocation.mockResolvedValue([]);
+      mockPostsRepo.getPostsByLocation.mockResolvedValue({ posts: [] });
 
       const response = await request(server.expressApp)
         .get("/xrpc/social.soapstone.feed.getPosts")
@@ -374,7 +377,7 @@ describe("Firehose to API Integration Test", () => {
 
       // The repository would transform this to text "Be wary of Rear"
       // Mock the expected transformed result
-      mockPostsRepo.getPostsByLocation.mockResolvedValue([expectedPost]);
+      mockPostsRepo.getPostsByLocation.mockResolvedValue({ posts: [expectedPost] });
 
       const response = await request(server.expressApp)
         .get("/xrpc/social.soapstone.feed.getPosts")

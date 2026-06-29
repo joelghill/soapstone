@@ -1,10 +1,24 @@
 import { Database } from "#/lib/db/postgres";
 import { Post } from "./entities";
 import postgis from "knex-postgis";
+import { IdResolver } from "@atproto/identity";
 import { PostView } from "#/lexicon/types/social/soapstone/feed/defs";
 import { Message } from "#/lexicon/types/social/soapstone/message/defs";
 import { parseGeoURI, convertPostGISToGeoURI } from "#/lib/utils/geo";
 import { createMessageText, validateMessageType } from "#/lib/utils/message";
+import { resolveProfiles } from "./profiles";
+import { encodeCursor, decodeCursor } from "./cursor";
+
+type PostCursor = { createdAt: string; cid: string };
+
+function isPostCursor(v: unknown): v is PostCursor {
+  return (
+    typeof v === "object" &&
+    v !== null &&
+    typeof (v as PostCursor).createdAt === "string" &&
+    typeof (v as PostCursor).cid === "string"
+  );
+}
 
 /**
  * Repository for managing post-related database operations.
@@ -12,22 +26,28 @@ import { createMessageText, validateMessageType } from "#/lib/utils/message";
 export class PostRepository {
   private db: Database;
   private st: postgis.KnexPostgis;
+  private idResolver: IdResolver;
 
-  constructor(db: Database, st: postgis.KnexPostgis) {
+  constructor(db: Database, st: postgis.KnexPostgis, idResolver: IdResolver) {
     this.db = db;
     this.st = st;
+    this.idResolver = idResolver;
   }
 
   /**
-   * Fetches posts by location within a specified radius.
+   * Fetches posts by location within a specified radius, newest first.
    * @param geoUri - The geo URI of the location (e.g., "geo:lat,lon").
    * @param radius - Radius in meters to search for posts (default: 1000m).
-   * @returns A promise that resolves to an array of PostView objects.
+   * @param limit - Maximum number of posts to return (default: 50).
+   * @param cursor - Opaque pagination cursor from a previous call.
+   * @returns A promise resolving to a page of PostView objects and the next cursor.
    */
   async getPostsByLocation(
     geoUri: string,
     radius: number = 1000,
-  ): Promise<PostView[]> {
+    limit: number = 50,
+    cursor?: string,
+  ): Promise<{ posts: PostView[]; cursor?: string }> {
     // Parse geo URI to get coordinates
     const geoData = parseGeoURI(geoUri);
 
@@ -56,29 +76,53 @@ export class PostRepository {
       // validation and 500 the whole request. They can't be rated without a
       // cid anyway, so exclude them.
       .whereNotNull("post.cid")
-      .orderBy("post.created_at", "desc");
+      .orderBy([
+        { column: "post.created_at", order: "desc" },
+        { column: "post.cid", order: "desc" },
+      ])
+      .limit(limit);
+
+    // Keyset pagination: continue strictly after the (created_at, cid) tuple
+    // encoded in the cursor, matching the descending order above.
+    const decoded = decodeCursor(cursor, isPostCursor);
+    if (decoded) {
+      query.whereRaw("(post.created_at, post.cid) < (?::timestamptz, ?)", [
+        decoded.createdAt,
+        decoded.cid,
+      ]);
+    }
 
     const posts = await query;
 
-    // Get rating counts for all posts
+    // Aggregate interaction counts for the posts on this page.
     const postUris = posts.map((p) => p.uri);
     const ratingCounts = await this.getRatingCounts(postUris);
 
-    // Create a map for quick rating lookup
     const ratingsMap = new Map<
       string,
-      { positive: number; negative: number }
+      { positive: number; negative: number; total: number }
     >();
     ratingCounts.forEach((rating) => {
       ratingsMap.set(rating.post_uri, {
         positive: parseInt(rating.positive_count) || 0,
         negative: parseInt(rating.negative_count) || 0,
+        total: parseInt(rating.total_count) || 0,
       });
     });
 
+    // Resolve author profiles (handles), deduped by DID.
+    const authors = await resolveProfiles(
+      this.idResolver,
+      posts.map((p) => p.author_did),
+    );
+
     // Build PostView objects
     const postViews: PostView[] = posts.map((post) => {
-      const ratings = ratingsMap.get(post.uri) || { positive: 0, negative: 0 };
+      const ratings = ratingsMap.get(post.uri) || {
+        positive: 0,
+        negative: 0,
+        total: 0,
+      };
 
       // Convert PostGIS POINT text to geo URI format
       const geoUri = convertPostGISToGeoURI(post.location_text, post.elevation);
@@ -86,16 +130,27 @@ export class PostRepository {
       return {
         uri: post.uri,
         cid: post.cid,
-        author_did: post.author_did,
+        author: authors.get(post.author_did) ?? {
+          did: post.author_did,
+          handle: "handle.invalid",
+        },
         text: post.text,
-        location: geoUri, // Geo URI format
-        positive_ratings: ratings.positive,
-        negative_ratings: ratings.negative,
-        created_at: post.created_at.toISOString(),
+        location: { uri: geoUri },
+        likes: ratings.positive,
+        dislikes: ratings.negative,
+        discoveries: ratings.total,
+        createdAt: post.created_at.toISOString(),
       };
     });
 
-    return postViews;
+    // Only emit a cursor when the page was full; otherwise there is no next page.
+    const last = posts[posts.length - 1];
+    const nextCursor =
+      posts.length === limit && last
+        ? encodeCursor({ createdAt: last.created_at.toISOString(), cid: last.cid })
+        : undefined;
+
+    return { posts: postViews, cursor: nextCursor };
   }
 
   /**
@@ -160,6 +215,9 @@ export class PostRepository {
           "SUM(CASE WHEN positive = false THEN 1 ELSE 0 END) as negative_count",
         ),
       )
+      // Discoveries = every interaction row for the post (likes, dislikes, and
+      // seen-only records where positive is null).
+      .select(this.db.raw("COUNT(*) as total_count"))
       .groupBy("post_uri");
   }
 
@@ -197,11 +255,21 @@ export class PostRepository {
     authorDid: string;
     postUri: string;
     messageCid?: string;
-    positive: boolean;
+    // null = a discovery (the account has seen the post but not rated it).
+    positive: boolean | null;
     createdAt: string;
   }): Promise<void> {
-    // Ignore conflicts so replayed firehose events (e.g. after a reconnect)
-    // are idempotent rather than raising duplicate-key errors.
+    // Interactions are mutable: re-rating a post reuses the subject's rkey, so
+    // the record (and its uri) is overwritten and the firehose emits an update.
+    // Merge on conflict so the stored rating reflects the latest value rather
+    // than being ignored. Replayed events converge to the same row, so this
+    // stays idempotent.
+    //
+    // Conflict on (author_did, post_uri) — the appview's one-per-account-per-post
+    // constraint — rather than on uri. The interaction lexicon's `key: "any"`
+    // lets a non-conformant client write a second interaction for the same post
+    // under a different rkey (hence a different uri); targeting the uri PK would
+    // miss that conflict and throw on the unique index instead of merging.
     await this.db("rating")
       .insert({
         uri: rating.uri,
@@ -212,8 +280,8 @@ export class PostRepository {
         created_at: rating.createdAt,
         indexed_at: new Date().toISOString(),
       } as any)
-      .onConflict("uri")
-      .ignore();
+      .onConflict(["author_did", "post_uri"])
+      .merge(["positive", "message_cid", "created_at", "indexed_at"] as any);
   }
 
   /**

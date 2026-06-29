@@ -4,6 +4,8 @@
   "defs": {
     "basePhrase": {
       "type": "object",
+      "description": "A base phrase template. Values are an intentionally closed, authored vocabulary (the Dark Souls soapstone message set), so this is an enum rather than knownValues.",
+      "required": ["selection"],
       "properties": {
         "selection": {
           "type": "string",
@@ -28,7 +30,8 @@
     },
     "character": {
       "type": "object",
-      "description": "Character types that can be used in conjunction with base phrases to form a complete message",
+      "description": "Character types that can be used in conjunction with base phrases to form a complete message. Intentionally closed, authored vocabulary.",
+      "required": ["selection"],
       "properties": {
         "selection": {
           "type": "string",
@@ -62,7 +65,8 @@
     },
     "object": {
       "type": "object",
-      "description": "Objects that can be used in conjunction with base phrases to form a complete message",
+      "description": "Objects that can be used in conjunction with base phrases to form a complete message. Intentionally closed, authored vocabulary.",
+      "required": ["selection"],
       "properties": {
         "selection": {
           "type": "string",
@@ -107,7 +111,8 @@
     },
     "technique": {
       "type": "object",
-      "description": "Techniques that can be used in conjunction with base phrases to form a complete message",
+      "description": "Techniques that can be used in conjunction with base phrases to form a complete message. Intentionally closed, authored vocabulary.",
+      "required": ["selection"],
       "properties": {
         "selection": {
           "type": "string",
@@ -140,7 +145,8 @@
     },
     "action": {
       "type": "object",
-      "description": "Action types that can be used in conjunction with base phrases to form a complete message",
+      "description": "Action types that can be used in conjunction with base phrases to form a complete message. Intentionally closed, authored vocabulary.",
+      "required": ["selection"],
       "properties": {
         "selection": {
           "type": "string",
@@ -161,7 +167,8 @@
     },
     "geography": {
       "type": "object",
-      "description": "Geography types that can be used in conjunction with base phrases to form a complete message",
+      "description": "Geography types that can be used in conjunction with base phrases to form a complete message. Intentionally closed, authored vocabulary.",
+      "required": ["selection"],
       "properties": {
         "selection": {
           "type": "string",
@@ -171,7 +178,6 @@
             "Shortcut",
             "Detour",
             "Illusionary wall",
-            "Shortcut",
             "Dead end",
             "Swamp",
             "Lava",
@@ -195,7 +201,8 @@
     },
     "orientation": {
       "type": "object",
-      "description": "Orientation types that can be used in conjunction with base phrases to form a complete message",
+      "description": "Orientation types that can be used in conjunction with base phrases to form a complete message. Intentionally closed, authored vocabulary.",
+      "required": ["selection"],
       "properties": {
         "selection": {
           "type": "string",
@@ -207,15 +214,15 @@
             "Up",
             "Down",
             "Feet",
-            "Head",
-            "Back"
+            "Head"
           ]
         }
       }
     },
     "bodyPart": {
       "type": "object",
-      "description": "Body parts that can be used in conjunction with base phrases to form a complete message",
+      "description": "Body parts that can be used in conjunction with base phrases to form a complete message. Intentionally closed, authored vocabulary.",
+      "required": ["selection"],
       "properties": {
         "selection": {
           "type": "string",
@@ -237,7 +244,8 @@
     },
     "attribute": {
       "type": "object",
-      "description": "Attributes that can be used in conjunction with base phrases to form a complete message",
+      "description": "Attributes that can be used in conjunction with base phrases to form a complete message. Intentionally closed, authored vocabulary.",
+      "required": ["selection"],
       "properties": {
         "selection": {
           "type": "string",

@@ -1,4 +1,5 @@
 import { createDb, migrateToLatest, closeDb } from "#/lib/db/postgres";
+import { Rating } from "#/lib/repositories/entities";
 import knex from "knex";
 import postgis from "knex-postgis";
 
@@ -173,7 +174,7 @@ describe("Database utilities", () => {
     });
 
     it("should have correct Rating interface structure", () => {
-      const rating = {
+      const rating: Rating = {
         uri: "at://did:test/collection/record",
         authorDid: "did:test:user",
         postUri: "at://did:test/post/record",
@@ -188,6 +189,21 @@ describe("Database utilities", () => {
       expect(rating).toHaveProperty("positive");
       expect(rating).toHaveProperty("createdAt");
       expect(rating).toHaveProperty("indexedAt");
+    });
+
+    it("should allow a discovery rating with a null value", () => {
+      // A discovery (the account saw the post but did not rate it) is stored
+      // with positive = null.
+      const discovery: Rating = {
+        uri: "at://did:test/collection/record",
+        authorDid: "did:test:user",
+        postUri: "at://did:test/post/record",
+        positive: null,
+        createdAt: "2023-01-01T00:00:00Z",
+        indexedAt: "2023-01-01T00:00:00Z",
+      };
+
+      expect(discovery.positive).toBeNull();
     });
   });
 });

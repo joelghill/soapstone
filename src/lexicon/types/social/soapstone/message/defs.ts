@@ -15,11 +15,11 @@ const is$typed = _is$typed,
   validate = _validate
 const id = 'social.soapstone.message.defs'
 
-/** A message part consisting of a base phrase and a fill phrase. */
+/** A message part consisting of a base phrase and an optional fill phrase. Standalone base phrases (e.g. 'Praise the Sun!') have no '****' slot and omit the fill. */
 export interface MessagePart {
   $type?: 'social.soapstone.message.defs#messagePart'
   base: $Typed<SocialSoapstoneTextEnDefs.BasePhrase> | { $type: string }
-  fill:
+  fill?:
     | $Typed<SocialSoapstoneTextEnDefs.Character>
     | $Typed<SocialSoapstoneTextEnDefs.Object>
     | $Typed<SocialSoapstoneTextEnDefs.Technique>

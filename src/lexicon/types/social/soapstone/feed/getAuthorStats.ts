@@ -13,23 +13,16 @@ import type * as SocialSoapstoneFeedDefs from './defs.js'
 
 const is$typed = _is$typed,
   validate = _validate
-const id = 'social.soapstone.feed.getPosts'
+const id = 'social.soapstone.feed.getAuthorStats'
 
 export type QueryParams = {
-  /** The requester's current location as described by a geo URI, a scheme defined by the Internet Engineering Task Force's RFC 5870 (published 8 June 2010). */
-  location: string
-  /** The radius in meters around the location to search for posts */
-  radius?: number
-  /** Maximum number of posts to return. */
-  limit: number
-  /** Pagination cursor returned by a previous call. */
-  cursor?: string
+  /** The account whose authored-post totals to fetch. Defaults to the authenticated account. */
+  actor?: string
 }
 export type InputSchema = undefined
 
 export interface OutputSchema {
-  cursor?: string
-  posts: SocialSoapstoneFeedDefs.PostView[]
+  stats: SocialSoapstoneFeedDefs.InteractionStats
 }
 
 export type HandlerInput = void

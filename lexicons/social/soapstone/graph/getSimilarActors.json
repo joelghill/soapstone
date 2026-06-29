@@ -1,0 +1,43 @@
+{
+  "lexicon": 1,
+  "id": "social.soapstone.graph.getSimilarActors",
+  "defs": {
+    "main": {
+      "type": "query",
+      "description": "Lists accounts whose interactions overlap with the requesting account's — accounts that have interacted with the same posts. For each account, reports how many posts they have liked, disliked, and discovered in common with the requesting account. Requires authentication. Results are ranked by posts discovered in common.",
+      "parameters": {
+        "type": "params",
+        "properties": {
+          "limit": {
+            "type": "integer",
+            "description": "Maximum number of accounts to return.",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 50
+          },
+          "cursor": {
+            "type": "string",
+            "description": "Pagination cursor returned by a previous call."
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["actors"],
+          "properties": {
+            "cursor": { "type": "string" },
+            "actors": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "social.soapstone.graph.defs#sharedInteractionsView"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

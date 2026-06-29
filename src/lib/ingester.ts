@@ -3,11 +3,11 @@ import { IdResolver } from "@atproto/identity";
 import { Firehose } from "@atproto/sync";
 import type { Event } from "@atproto/sync";
 import * as Post from "#/lexicon/types/social/soapstone/feed/post";
-import * as Rating from "#/lexicon/types/social/soapstone/feed/rating";
+import * as Interaction from "#/lexicon/types/social/soapstone/feed/interaction";
 import { PostRepository } from "./repositories/post_repo";
 
 const POST_COLLECTION = "social.soapstone.feed.post";
-const RATING_COLLECTION = "social.soapstone.feed.rating";
+const INTERACTION_COLLECTION = "social.soapstone.feed.interaction";
 
 export function createIngester(
   posts: PostRepository,
@@ -17,9 +17,10 @@ export function createIngester(
   return new Firehose({
     idResolver,
     handleEvent: async (evt: Event) => {
-      // Watch for write events. Soapstone posts are immutable, so we only
-      // handle create/delete and ignore update events.
-      if (evt.event === "create") {
+      // Watch for write events. Posts are immutable so we only ingest them on
+      // create; interactions are mutable (re-rating overwrites the record at the
+      // same rkey), so we handle their updates too.
+      if (evt.event === "create" || evt.event === "update") {
         // Log when we see any soapstone event
         logger.debug(
           {
@@ -32,8 +33,9 @@ export function createIngester(
         );
 
         // If the write is a valid post. The collection is already restricted
-        // by `filterCollections`, but we re-check defensively.
-        if (evt.collection === POST_COLLECTION) {
+        // by `filterCollections`, but we re-check defensively. Posts are
+        // immutable, so we ignore post updates.
+        if (evt.collection === POST_COLLECTION && evt.event === "create") {
           const record = evt.record as Post.Record;
 
           if (Post.isRecord(record) && Post.validateRecord(record).success) {
@@ -61,27 +63,34 @@ export function createIngester(
               );
             }
           }
-        } else if (evt.collection === RATING_COLLECTION) {
-          const record = evt.record as Rating.Record;
+        } else if (evt.collection === INTERACTION_COLLECTION) {
+          const record = evt.record as Interaction.Record;
 
           if (
-            Rating.isRecord(record) &&
-            Rating.validateRecord(record).success
+            Interaction.isRecord(record) &&
+            Interaction.validateRecord(record).success
           ) {
             logger.debug(
               { time: evt.time, uri: evt.uri, record },
-              "ingesting rating event",
+              "ingesting interaction event",
             );
 
-            // Store the rating in our PostgreSQL database. As with posts, a
-            // failure drops the event rather than throwing.
+            // Store the interaction in our PostgreSQL database. As with posts, a
+            // failure drops the event rather than throwing. A rating of "like"
+            // maps to positive=true, "dislike" to false, and an absent rating
+            // (a discovery — the account saw the post) to null.
             try {
               await posts.createRating({
                 uri: evt.uri.toString(),
                 authorDid: evt.did,
-                postUri: record.message.uri,
-                messageCid: record.message.cid,
-                positive: record.value,
+                postUri: record.subject.uri,
+                messageCid: record.subject.cid,
+                positive:
+                  record.rating === "like"
+                    ? true
+                    : record.rating === "dislike"
+                      ? false
+                      : null,
                 createdAt: evt.time,
               });
             } catch (error) {
@@ -108,14 +117,14 @@ export function createIngester(
               "failed to delete post from database",
             );
           }
-        } else if (evt.collection === RATING_COLLECTION) {
-          // Remove the rating from our PostgreSQL database
+        } else if (evt.collection === INTERACTION_COLLECTION) {
+          // Remove the interaction from our PostgreSQL database
           try {
             await posts.deleteRating(evt.uri.toString());
           } catch (error) {
             logger.error(
               { error, uri: evt.uri },
-              "failed to delete rating from database",
+              "failed to delete interaction from database",
             );
           }
         }
@@ -127,7 +136,7 @@ export function createIngester(
     onError: (err: Error) => {
       logger.error({ err }, "error on firehose ingestion");
     },
-    filterCollections: [POST_COLLECTION, RATING_COLLECTION],
+    filterCollections: [POST_COLLECTION, INTERACTION_COLLECTION],
     excludeIdentity: true,
     excludeAccount: true,
     unauthenticatedHandles: true,

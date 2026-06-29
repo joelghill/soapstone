@@ -4,7 +4,7 @@
   "defs": {
     "location": {
       "type": "object",
-      "description": "A location in a 3D reference system.",
+      "description": "A geographic location expressed as an RFC 5870 geo URI (latitude and longitude, with optional altitude).",
       "required": ["uri"],
       "properties": {
         "uri": {

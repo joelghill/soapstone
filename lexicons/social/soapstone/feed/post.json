@@ -4,6 +4,7 @@
   "defs": {
     "main": {
       "type": "record",
+      "description": "A soapstone post: a templated message left at a geographic location, in the style of Dark Souls orange soapstone messages.",
       "key": "tid",
       "record": {
         "type": "object",

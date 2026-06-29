@@ -13,22 +13,24 @@ describe("XRPC getPosts endpoint (supertest)", () => {
     {
       uri: "at://did:test:user1/social.soapstone.feed.post/1",
       cid: "bafyreidfayvfuwqa7qlnopdjiqrxzs6blmoeu4rujcjtnci5beludirz2a",
-      author_did: "did:test:user1",
+      author: { did: "did:test:user1", handle: "user1.test" },
       text: "Test post 1",
-      location: "geo:37.7749,-122.4194",
-      positive_ratings: 5,
-      negative_ratings: 1,
-      created_at: "2023-01-01T00:00:00.000Z",
+      location: { uri: "geo:37.7749,-122.4194" },
+      likes: 5,
+      dislikes: 1,
+      discoveries: 6,
+      createdAt: "2023-01-01T00:00:00.000Z",
     },
     {
       uri: "at://did:test:user2/social.soapstone.feed.post/2",
       cid: "bafyreihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku",
-      author_did: "did:test:user2",
+      author: { did: "did:test:user2", handle: "user2.test" },
       text: "Test post 2",
-      location: "geo:37.7750,-122.4195",
-      positive_ratings: 3,
-      negative_ratings: 2,
-      created_at: "2023-01-01T01:00:00.000Z",
+      location: { uri: "geo:37.7750,-122.4195" },
+      likes: 3,
+      dislikes: 2,
+      discoveries: 5,
+      createdAt: "2023-01-01T01:00:00.000Z",
     },
   ];
 
@@ -40,7 +42,7 @@ describe("XRPC getPosts endpoint (supertest)", () => {
     // Reset all mocks
     jest.clearAllMocks();
 
-    mockPostsRepo.getPostsByLocation.mockResolvedValue(samplePosts);
+    mockPostsRepo.getPostsByLocation.mockResolvedValue({ posts: samplePosts });
   });
 
   describe("GET /xrpc/social.soapstone.feed.getPosts", () => {
@@ -56,6 +58,8 @@ describe("XRPC getPosts endpoint (supertest)", () => {
       });
       expect(mockPostsRepo.getPostsByLocation).toHaveBeenCalledWith(
         "geo:37.7749,-122.4194",
+        undefined,
+        50,
         undefined,
       );
     });
@@ -75,6 +79,35 @@ describe("XRPC getPosts endpoint (supertest)", () => {
       expect(mockPostsRepo.getPostsByLocation).toHaveBeenCalledWith(
         "geo:37.7749,-122.4194",
         500,
+        50,
+        undefined,
+      );
+    });
+
+    it("should pass limit and cursor through and return the next cursor", async () => {
+      mockPostsRepo.getPostsByLocation.mockResolvedValue({
+        posts: samplePosts,
+        cursor: "next-cursor",
+      });
+
+      const response = await request(server.expressApp)
+        .get("/xrpc/social.soapstone.feed.getPosts")
+        .query({
+          location: "geo:37.7749,-122.4194",
+          limit: "1",
+          cursor: "prev-cursor",
+        })
+        .expect(200);
+
+      expect(response.body).toEqual({
+        posts: samplePosts,
+        cursor: "next-cursor",
+      });
+      expect(mockPostsRepo.getPostsByLocation).toHaveBeenCalledWith(
+        "geo:37.7749,-122.4194",
+        undefined,
+        1,
+        "prev-cursor",
       );
     });
 
@@ -103,6 +136,8 @@ describe("XRPC getPosts endpoint (supertest)", () => {
       expect(mockPostsRepo.getPostsByLocation).toHaveBeenCalledWith(
         "geo:37.7749,-122.4194",
         250,
+        50,
+        undefined,
       );
     });
 
@@ -121,11 +156,13 @@ describe("XRPC getPosts endpoint (supertest)", () => {
       expect(mockPostsRepo.getPostsByLocation).toHaveBeenCalledWith(
         "geo:-33.8688,151.2093",
         undefined,
+        50,
+        undefined,
       );
     });
 
     it("should handle empty posts result", async () => {
-      mockPostsRepo.getPostsByLocation.mockResolvedValue([]);
+      mockPostsRepo.getPostsByLocation.mockResolvedValue({ posts: [] });
 
       const response = await request(server.expressApp)
         .get("/xrpc/social.soapstone.feed.getPosts")
@@ -139,6 +176,8 @@ describe("XRPC getPosts endpoint (supertest)", () => {
       });
       expect(mockPostsRepo.getPostsByLocation).toHaveBeenCalledWith(
         "geo:37.7749,-122.4194",
+        undefined,
+        50,
         undefined,
       );
     });
@@ -161,13 +200,15 @@ describe("XRPC getPosts endpoint (supertest)", () => {
         {
           uri: "at://did:test:user1/social.soapstone.feed.post/1",
           cid: "bafyreidfayvfuwqa7qlnopdjiqrxzs6blmoeu4rujcjtnci5beludirz2a",
-          author_did: "did:test:user1",
+          author: { did: "did:test:user1", handle: "user1.test" },
           text: "Minimal post",
-          location: "geo:37.7749,-122.4194",
-          created_at: "2023-01-01T00:00:00.000Z",
+          location: { uri: "geo:37.7749,-122.4194" },
+          createdAt: "2023-01-01T00:00:00.000Z",
         },
       ];
-      mockPostsRepo.getPostsByLocation.mockResolvedValue(minimalPosts);
+      mockPostsRepo.getPostsByLocation.mockResolvedValue({
+        posts: minimalPosts,
+      });
 
       const response = await request(server.expressApp)
         .get("/xrpc/social.soapstone.feed.getPosts")
@@ -219,6 +260,8 @@ describe("XRPC getPosts endpoint (supertest)", () => {
       expect(mockPostsRepo.getPostsByLocation).toHaveBeenCalledWith(
         "geo:37.774925,-122.419414",
         undefined,
+        50,
+        undefined,
       );
     });
 
@@ -236,6 +279,8 @@ describe("XRPC getPosts endpoint (supertest)", () => {
       });
       expect(mockPostsRepo.getPostsByLocation).toHaveBeenCalledWith(
         "geo:90,-180",
+        undefined,
+        50,
         undefined,
       );
     });
@@ -281,16 +326,17 @@ describe("XRPC getPosts endpoint (supertest)", () => {
         {
           uri: "at://did:test:user1/social.soapstone.feed.post/1",
           cid: "bafyreidfayvfuwqa7qlnopdjiqrxzs6blmoeu4rujcjtnci5beludirz2a",
-          author_did: "did:test:user1",
+          author: { did: "did:test:user1", handle: "user1.test" },
           text: "Full post with all fields",
-          location: "geo:37.7749,-122.4194",
-          positive_ratings: 10,
-          negative_ratings: 2,
-          created_at: "2023-01-01T00:00:00.000Z",
+          location: { uri: "geo:37.7749,-122.4194" },
+          likes: 10,
+          dislikes: 2,
+          discoveries: 15,
+          createdAt: "2023-01-01T00:00:00.000Z",
           viewer: undefined,
         },
       ];
-      mockPostsRepo.getPostsByLocation.mockResolvedValue(fullPosts);
+      mockPostsRepo.getPostsByLocation.mockResolvedValue({ posts: fullPosts });
 
       const response = await request(server.expressApp)
         .get("/xrpc/social.soapstone.feed.getPosts")

@@ -14,7 +14,7 @@ const is$typed = _is$typed,
   validate = _validate
 const id = 'social.soapstone.location.defs'
 
-/** A location in a 3D reference system. */
+/** A geographic location expressed as an RFC 5870 geo URI (latitude and longitude, with optional altitude). */
 export interface Location {
   $type?: 'social.soapstone.location.defs#location'
   /** A geo URI using a scheme defined by the Internet Engineering Task Force's RFC 5870 (published 8 June 2010). */

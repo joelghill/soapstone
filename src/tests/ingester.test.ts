@@ -191,7 +191,7 @@ describe("Ingester", () => {
       });
     });
 
-    it("should write a valid rating event to the database", async () => {
+    it("should write a valid interaction (like) event to the database", async () => {
       createIngester(mockPostsRepo, mockIdResolver, mockLogger);
 
       const event = {
@@ -199,17 +199,17 @@ describe("Ingester", () => {
         did: "did:plc:rater123",
         uri: {
           toString: () =>
-            "at://did:plc:rater123/social.soapstone.feed.rating/rate1",
+            "at://did:plc:rater123/social.soapstone.feed.interaction/rate1",
         },
-        collection: "social.soapstone.feed.rating",
+        collection: "social.soapstone.feed.interaction",
         time: "2025-11-05T12:00:00.000Z",
         record: {
-          $type: "social.soapstone.feed.rating",
-          message: {
+          $type: "social.soapstone.feed.interaction",
+          subject: {
             uri: "at://did:plc:author/social.soapstone.feed.post/post1",
             cid: "bafyreibvjvcv745gig4mvqs4hctx4zfkono4rjejm2ta6gtyay4qewdldi",
           },
-          value: true,
+          rating: "like",
           createdAt: "2025-11-05T12:00:00.000Z",
         },
       };
@@ -218,7 +218,7 @@ describe("Ingester", () => {
 
       expect(mockPostsRepo.createRating).toHaveBeenCalledTimes(1);
       expect(mockPostsRepo.createRating).toHaveBeenCalledWith({
-        uri: "at://did:plc:rater123/social.soapstone.feed.rating/rate1",
+        uri: "at://did:plc:rater123/social.soapstone.feed.interaction/rate1",
         authorDid: "did:plc:rater123",
         postUri: "at://did:plc:author/social.soapstone.feed.post/post1",
         messageCid:
@@ -229,7 +229,7 @@ describe("Ingester", () => {
       expect(mockPostsRepo.createPost).not.toHaveBeenCalled();
     });
 
-    it("should ignore rating events with an invalid record", async () => {
+    it("should map a dislike interaction to positive=false", async () => {
       createIngester(mockPostsRepo, mockIdResolver, mockLogger);
 
       const event = {
@@ -237,13 +237,72 @@ describe("Ingester", () => {
         did: "did:plc:rater123",
         uri: {
           toString: () =>
-            "at://did:plc:rater123/social.soapstone.feed.rating/rate1",
+            "at://did:plc:rater123/social.soapstone.feed.interaction/rate2",
         },
-        collection: "social.soapstone.feed.rating",
+        collection: "social.soapstone.feed.interaction",
         time: "2025-11-05T12:00:00.000Z",
         record: {
-          $type: "social.soapstone.feed.rating",
-          // Missing message and value fields
+          $type: "social.soapstone.feed.interaction",
+          subject: {
+            uri: "at://did:plc:author/social.soapstone.feed.post/post1",
+            cid: "bafyreibvjvcv745gig4mvqs4hctx4zfkono4rjejm2ta6gtyay4qewdldi",
+          },
+          rating: "dislike",
+          createdAt: "2025-11-05T12:00:00.000Z",
+        },
+      };
+
+      await capturedConfig.handleEvent(event);
+
+      expect(mockPostsRepo.createRating).toHaveBeenCalledWith(
+        expect.objectContaining({ positive: false }),
+      );
+    });
+
+    it("should map a rating-less interaction (discovery) to positive=null", async () => {
+      createIngester(mockPostsRepo, mockIdResolver, mockLogger);
+
+      const event = {
+        event: "create",
+        did: "did:plc:rater123",
+        uri: {
+          toString: () =>
+            "at://did:plc:rater123/social.soapstone.feed.interaction/seen1",
+        },
+        collection: "social.soapstone.feed.interaction",
+        time: "2025-11-05T12:00:00.000Z",
+        record: {
+          $type: "social.soapstone.feed.interaction",
+          subject: {
+            uri: "at://did:plc:author/social.soapstone.feed.post/post1",
+            cid: "bafyreibvjvcv745gig4mvqs4hctx4zfkono4rjejm2ta6gtyay4qewdldi",
+          },
+          createdAt: "2025-11-05T12:00:00.000Z",
+        },
+      };
+
+      await capturedConfig.handleEvent(event);
+
+      expect(mockPostsRepo.createRating).toHaveBeenCalledWith(
+        expect.objectContaining({ positive: null }),
+      );
+    });
+
+    it("should ignore interaction events with an invalid record", async () => {
+      createIngester(mockPostsRepo, mockIdResolver, mockLogger);
+
+      const event = {
+        event: "create",
+        did: "did:plc:rater123",
+        uri: {
+          toString: () =>
+            "at://did:plc:rater123/social.soapstone.feed.interaction/rate1",
+        },
+        collection: "social.soapstone.feed.interaction",
+        time: "2025-11-05T12:00:00.000Z",
+        record: {
+          $type: "social.soapstone.feed.interaction",
+          // Missing required subject field
           createdAt: "2025-11-05T12:00:00.000Z",
         },
       };
@@ -348,16 +407,16 @@ describe("Ingester", () => {
       );
     });
 
-    it("should delete a rating when receiving a delete event", async () => {
+    it("should delete an interaction when receiving a delete event", async () => {
       createIngester(mockPostsRepo, mockIdResolver, mockLogger);
       const event = {
         event: "delete",
         did: "did:plc:rater123",
         uri: {
           toString: () =>
-            "at://did:plc:rater123/social.soapstone.feed.rating/rate1",
+            "at://did:plc:rater123/social.soapstone.feed.interaction/rate1",
         },
-        collection: "social.soapstone.feed.rating",
+        collection: "social.soapstone.feed.interaction",
         time: "2025-11-05T12:00:00.000Z",
       };
 
@@ -365,7 +424,7 @@ describe("Ingester", () => {
 
       expect(mockPostsRepo.deleteRating).toHaveBeenCalledTimes(1);
       expect(mockPostsRepo.deleteRating).toHaveBeenCalledWith(
-        "at://did:plc:rater123/social.soapstone.feed.rating/rate1",
+        "at://did:plc:rater123/social.soapstone.feed.interaction/rate1",
       );
       expect(mockPostsRepo.deletePost).not.toHaveBeenCalled();
     });
@@ -406,6 +465,42 @@ describe("Ingester", () => {
 
       expect(mockPostsRepo.createPost).not.toHaveBeenCalled();
       expect(mockPostsRepo.deletePost).not.toHaveBeenCalled();
+    });
+
+    it("should upsert an interaction on an update event (re-rating)", async () => {
+      createIngester(mockPostsRepo, mockIdResolver, mockLogger);
+
+      const event = {
+        event: "update",
+        did: "did:plc:rater123",
+        uri: {
+          toString: () =>
+            "at://did:plc:rater123/social.soapstone.feed.interaction/post1",
+        },
+        collection: "social.soapstone.feed.interaction",
+        time: "2025-11-06T12:00:00.000Z",
+        record: {
+          $type: "social.soapstone.feed.interaction",
+          subject: {
+            uri: "at://did:plc:author/social.soapstone.feed.post/post1",
+            cid: "bafyreibvjvcv745gig4mvqs4hctx4zfkono4rjejm2ta6gtyay4qewdldi",
+          },
+          // Re-rated from like to dislike.
+          rating: "dislike",
+          createdAt: "2025-11-06T12:00:00.000Z",
+        },
+      };
+
+      await capturedConfig.handleEvent(event);
+
+      expect(mockPostsRepo.createRating).toHaveBeenCalledTimes(1);
+      expect(mockPostsRepo.createRating).toHaveBeenCalledWith(
+        expect.objectContaining({
+          uri: "at://did:plc:rater123/social.soapstone.feed.interaction/post1",
+          postUri: "at://did:plc:author/social.soapstone.feed.post/post1",
+          positive: false,
+        }),
+      );
     });
 
     it("should ignore events without a recognized event type", async () => {

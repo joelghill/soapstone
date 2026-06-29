@@ -1,5 +1,7 @@
-# Use Node.js 22.5.1 as specified in .nvmrc
-FROM node:22.5.1-alpine AS base
+# Use Node.js 22 LTS as specified in .nvmrc.
+# Must be >= 22.12 so require() of ESM modules works (pino-pretty's bin.js
+# require()s strip-json-comments@5, which is ESM-only).
+FROM node:22-alpine AS base
 
 # Install dependencies needed for node-gyp and native modules
 RUN apk add --no-cache python3 make g++
@@ -26,7 +28,7 @@ COPY . .
 RUN yarn build
 
 # Production stage
-FROM node:22.5.1-alpine AS production
+FROM node:22-alpine AS production
 
 # Install dumb-init for proper signal handling
 RUN apk add --no-cache dumb-init

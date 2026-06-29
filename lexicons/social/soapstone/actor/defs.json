@@ -4,6 +4,7 @@
   "defs": {
     "profileViewMinimal": {
       "type": "object",
+      "description": "A minimal view of an account profile: identity plus optional display name and avatar.",
       "required": ["did", "handle"],
       "properties": {
         "did": { "type": "string", "format": "did" },

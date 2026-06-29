@@ -10,7 +10,10 @@ import {
   createServer as createXrpcServer,
 } from '@atproto/xrpc-server'
 import { schemas } from './lexicons.js'
+import * as SocialSoapstoneFeedGetAuthorStats from './types/social/soapstone/feed/getAuthorStats.js'
+import * as SocialSoapstoneFeedGetInteractions from './types/social/soapstone/feed/getInteractions.js'
 import * as SocialSoapstoneFeedGetPosts from './types/social/soapstone/feed/getPosts.js'
+import * as SocialSoapstoneGraphGetSimilarActors from './types/social/soapstone/graph/getSimilarActors.js'
 
 export function createServer(options?: XrpcOptions): Server {
   return new Server(options)
@@ -99,10 +102,12 @@ export class SocialNS {
 export class SocialSoapstoneNS {
   _server: Server
   feed: SocialSoapstoneFeedNS
+  graph: SocialSoapstoneGraphNS
 
   constructor(server: Server) {
     this._server = server
     this.feed = new SocialSoapstoneFeedNS(server)
+    this.graph = new SocialSoapstoneGraphNS(server)
   }
 }
 
@@ -111,6 +116,30 @@ export class SocialSoapstoneFeedNS {
 
   constructor(server: Server) {
     this._server = server
+  }
+
+  getAuthorStats<A extends Auth = void>(
+    cfg: MethodConfigOrHandler<
+      A,
+      SocialSoapstoneFeedGetAuthorStats.QueryParams,
+      SocialSoapstoneFeedGetAuthorStats.HandlerInput,
+      SocialSoapstoneFeedGetAuthorStats.HandlerOutput
+    >,
+  ) {
+    const nsid = 'social.soapstone.feed.getAuthorStats' // @ts-ignore
+    return this._server.xrpc.method(nsid, cfg)
+  }
+
+  getInteractions<A extends Auth = void>(
+    cfg: MethodConfigOrHandler<
+      A,
+      SocialSoapstoneFeedGetInteractions.QueryParams,
+      SocialSoapstoneFeedGetInteractions.HandlerInput,
+      SocialSoapstoneFeedGetInteractions.HandlerOutput
+    >,
+  ) {
+    const nsid = 'social.soapstone.feed.getInteractions' // @ts-ignore
+    return this._server.xrpc.method(nsid, cfg)
   }
 
   getPosts<A extends Auth = void>(
@@ -122,6 +151,26 @@ export class SocialSoapstoneFeedNS {
     >,
   ) {
     const nsid = 'social.soapstone.feed.getPosts' // @ts-ignore
+    return this._server.xrpc.method(nsid, cfg)
+  }
+}
+
+export class SocialSoapstoneGraphNS {
+  _server: Server
+
+  constructor(server: Server) {
+    this._server = server
+  }
+
+  getSimilarActors<A extends Auth = void>(
+    cfg: MethodConfigOrHandler<
+      A,
+      SocialSoapstoneGraphGetSimilarActors.QueryParams,
+      SocialSoapstoneGraphGetSimilarActors.HandlerInput,
+      SocialSoapstoneGraphGetSimilarActors.HandlerOutput
+    >,
+  ) {
+    const nsid = 'social.soapstone.graph.getSimilarActors' // @ts-ignore
     return this._server.xrpc.method(nsid, cfg)
   }
 }
